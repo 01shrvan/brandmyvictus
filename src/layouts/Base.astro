@@ -14,7 +14,7 @@ const ogImage = new URL("/og.png", Astro.site);
 ---
 
 <!doctype html>
-<html lang="en" class="light">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -42,25 +42,21 @@ const ogImage = new URL("/og.png", Astro.site);
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
 
-    <meta name="theme-color" content="#f4f2ea" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1d1f26" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f7f8fa" />
 
     <script is:inline>
       (() => {
         try {
-          const dark = localStorage.getItem("theme") === "dark";
-          document.documentElement.classList.toggle("dark", dark);
-          document.documentElement.classList.toggle("light", !dark);
           if (localStorage.getItem("currency") === "usd") document.documentElement.dataset.currency = "usd";
         } catch {}
       })();
     </script>
   </head>
 
-  <body class="grain">
+  <body>
     <a
       href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-ink focus:px-4 focus:py-2 focus:text-ground"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-ground"
     >
       skip to content
     </a>

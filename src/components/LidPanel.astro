@@ -1,0 +1,165 @@
+---
+import type { SpotState } from "@/lib/auction";
+import LidDrawing from "@/components/LidDrawing.astro";
+import SpotPlot from "@/components/SpotPlot.astro";
+import { LID, SITE } from "@/lib/site";
+
+interface Props {
+  spots: SpotState[];
+}
+
+const { spots } = Astro.props;
+const lid = spots.filter((s) => s.zone === "lid");
+const deck = spots.filter((s) => s.zone === "deck");
+const brick = spots.filter((s) => s.zone === "brick");
+const { w: W, h: H } = LID;
+
+const VIEWS = [
+  { id: "lid", label: "lid", count: lid.length },
+  { id: "deck", label: "deck", count: deck.length },
+  { id: "brick", label: "brick", count: brick.length },
+];
+---
+
+<aside class="relative flex flex-col bg-panel lg:sticky lg:top-0 lg:h-dvh">
+  <div class="flex items-center justify-between gap-3 px-gutter pt-4">
+    <a href="/" class="text-step--1 font-medium tracking-tight">{SITE.name}</a>
+    <div class="flex items-center gap-2">
+      <div class="data flex rounded-full border border-line-strong bg-ground p-0.5" role="tablist" aria-label="Views">
+        {
+          VIEWS.map((v, i) => (
+            <button
+              type="button"
+              role="tab"
+              class="tab rounded-full px-2.5 py-1 text-ink-soft transition-colors duration-200 hover:text-ink"
+              aria-selected={i === 0 ? "true" : "false"}
+              aria-controls={`view-${v.id}`}
+              data-tab={v.id}
+            >
+              {v.label}
+            </button>
+          ))
+        }
+      </div>
+      <button type="button" data-currency-toggle class="data rounded-full border border-line-strong bg-ground px-2.5 py-[0.3rem] text-ink-soft transition-colors hover:text-ink" aria-label="Switch currency">
+        <span class="money-inr">₹ inr</span><span class="money-usd">$ usd</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-1 items-center justify-center px-gutter py-8 lg:py-4">
+    <div id="view-lid" class="view is-active w-full max-w-[56rem]" data-view="lid" role="tabpanel">
+      <LidDrawing spots={lid} class="max-h-[calc(100dvh-9rem)]" />
+    </div>
+
+    <div id="view-deck" class="view w-full max-w-[56rem]" data-view="deck" role="tabpanel">
+      <svg viewBox="-24 -26 406 305" class="block h-auto max-h-[calc(100dvh-9rem)] w-full" role="group" aria-label="deck, sticker spots to scale">
+        <defs>
+          <pattern id="keys-main" x="16" y="20" width="16.66" height="19.33" patternUnits="userSpaceOnUse">
+            <rect x="1" y="1" width="14.66" height="17.33" rx="2" class="fill-lid-key stroke-lid-edge" stroke-width="0.4"></rect>
+          </pattern>
+          <pattern id="keys-num" x="274" y="20" width="17" height="19.33" patternUnits="userSpaceOnUse">
+            <rect x="1" y="1" width="15" height="17.33" rx="2" class="fill-lid-key stroke-lid-edge" stroke-width="0.4"></rect>
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width={W} height={H} rx="10" class="fill-lid stroke-lid" stroke-width="0.7"></rect>
+        <rect x="16" y="20" width="250" height="116" fill="url(#keys-main)"></rect>
+        <rect x="274" y="20" width="68" height="116" fill="url(#keys-num)"></rect>
+        <rect x="97" y="150" width="110" height="72" rx="4" class="fill-none stroke-lid-edge" stroke-width="0.8"></rect>
+        {deck.map((spot) => <SpotPlot spot={spot} />)}
+      </svg>
+    </div>
+
+    <div id="view-brick" class="view w-full max-w-[34rem]" data-view="brick" role="tabpanel">
+      <svg viewBox="-10 -10 190 112" class="block h-auto max-h-[calc(100dvh-9rem)] w-full" role="group" aria-label="charger brick, sticker spot">
+        <rect x="8" y="8" width="140" height="72" rx="8" class="fill-lid stroke-lid" stroke-width="0.7"></rect>
+        <path d="M 148 44 C 158 44, 160 58, 180 60" class="fill-none stroke-lid" stroke-width="2.2" stroke-linecap="round"></path>
+        {brick.map((spot) => <SpotPlot spot={spot} />)}
+      </svg>
+    </div>
+  </div>
+
+  <div class="flex items-baseline justify-between gap-4 border-t px-gutter py-3">
+    <p class="data min-w-0 truncate text-ink-soft" data-readout aria-live="polite">hover a spot. click it to bid</p>
+    <p class="data hidden shrink-0 items-center gap-3 text-ink-dim sm:flex">
+      <span class="inline-flex items-center gap-1.5"><span class="inline-block size-2.5 rounded-[3px] border border-dashed border-ink-dim"></span>open</span>
+      <span class="inline-flex items-center gap-1.5"><span class="inline-block size-2.5 rounded-[3px] bg-lid"></span>taken</span>
+      <span>to scale, mm</span>
+    </p>
+  </div>
+</aside>
+
+<script>
+  type SpotLite = {
+    id: number;
+    label: string;
+    zone: string;
+    size: string;
+    w: number;
+    h: number;
+    min: number;
+    leader: { brand: string; amount: number } | null;
+  };
+
+  const root = document.documentElement;
+  const source = document.getElementById("spot-data");
+  const spots: SpotLite[] = source ? JSON.parse(source.textContent ?? "{}").spots ?? [] : [];
+  const readout = document.querySelector<HTMLElement>("[data-readout]");
+  const idle = readout?.textContent ?? "";
+  const inr = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
+  const money = (n: number) => (root.dataset.currency === "usd" ? `$${Math.max(1, Math.round(n / 88))}` : `₹${inr.format(n)}`);
+
+  const show = (zone: string) => {
+    document.querySelectorAll<HTMLElement>("[data-view]").forEach((el) => el.classList.toggle("is-active", el.dataset.view === zone));
+    document.querySelectorAll<HTMLElement>("[data-tab]").forEach((el) => el.setAttribute("aria-selected", String(el.dataset.tab === zone)));
+  };
+
+  const hot = (id: string | undefined, on: boolean) => {
+    if (!id) return;
+    document.querySelectorAll(`[data-spot="${id}"]`).forEach((el) => el.classList.toggle("is-hot", on));
+    const spot = spots.find((s) => String(s.id) === id);
+    if (!readout || !spot) return;
+    if (!on) {
+      readout.textContent = idle;
+      return;
+    }
+    const size = `${spot.w / 10} × ${spot.h / 10} cm`;
+    readout.textContent = spot.leader
+      ? `${String(spot.id).padStart(2, "0")}  ${spot.label}  ${size}  ${spot.leader.brand} at ${money(spot.leader.amount)}`
+      : `${String(spot.id).padStart(2, "0")}  ${spot.label}  ${size}  open from ${money(spot.min)}`;
+  };
+
+  document.addEventListener("click", (event) => {
+    const target = event.target as Element | null;
+    const tab = target?.closest<HTMLElement>("[data-tab]");
+    if (tab?.dataset.tab) show(tab.dataset.tab);
+
+    if (target?.closest("[data-currency-toggle]")) {
+      if (root.dataset.currency === "usd") delete root.dataset.currency;
+      else root.dataset.currency = "usd";
+      try {
+        localStorage.setItem("currency", root.dataset.currency ?? "inr");
+      } catch {}
+    }
+  });
+
+  const onEnter = (event: Event) => {
+    const el = (event.target as Element | null)?.closest<HTMLElement | SVGElement>("[data-spot]");
+    if (!el) return;
+    const zone = el.dataset.zone;
+    if (zone && zone !== "web") show(zone);
+    hot(el.dataset.spot, true);
+  };
+
+  const onLeave = (event: Event) => {
+    const el = (event.target as Element | null)?.closest<HTMLElement | SVGElement>("[data-spot]");
+    const next = (event as PointerEvent | FocusEvent).relatedTarget as Element | null;
+    if (!el || (next && el.contains(next))) return;
+    hot(el.dataset.spot, false);
+  };
+
+  document.addEventListener("pointerover", onEnter);
+  document.addEventListener("focusin", onEnter);
+  document.addEventListener("pointerout", onLeave);
+  document.addEventListener("focusout", onLeave);
+</script>

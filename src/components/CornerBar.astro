@@ -27,42 +27,35 @@ const host = (url: string) => {
 };
 ---
 
-<div class="relative border-t">
-  <div class="flex h-9 items-center gap-3 px-gutter text-step--1">
-    <span class="data shrink-0 lowercase text-ink-soft">the corner</span>
-    {
-      leader ? (
-        <a
-          href={`${leader.url}${leader.url.includes("?") ? "&" : "?"}utm_source=victus.shrvan.xyz&utm_medium=corner`}
-          target="_blank"
-          rel="noopener sponsored"
-          class="group flex min-w-0 items-center gap-2"
-        >
-          <img
-            src={`https://unavatar.io/${host(leader.url)}?fallback=false`}
-            alt=""
-            width="16"
-            height="16"
-            class="size-4 shrink-0 border bg-surface object-cover"
-            onerror="this.style.visibility='hidden'"
-          />
-          <span class="truncate font-medium transition-colors group-hover:text-cobalt">{leader.brand}</span>
-          <span class="data hidden shrink-0 text-ink-soft sm:inline">
-            held {since(leader.liveAt)}
-          </span>
-        </a>
-      ) : (
-        <span class="truncate text-ink-soft">empty. first one gets it cheap</span>
-      )
-    }
-    <span class="leader hidden sm:block"></span>
-    {
-      history.length > 1 && (
-        <span class="data hidden shrink-0 text-ink-soft md:inline">{history.length - 1} before</span>
-      )
-    }
-    <button type="button" data-open-bid={corner.id} class="ml-auto shrink-0 text-cobalt transition-opacity hover:opacity-70 sm:ml-0">
-      take it for <Money inr={corner.min} class="font-medium" />
-    </button>
-  </div>
+<div class="flex min-h-10 items-center gap-3 border-b px-gutter py-2 text-step--1">
+  <span class="data shrink-0 rounded-full bg-signal px-2 py-0.5 text-ink">the corner</span>
+  {
+    leader ? (
+      <a
+        href={`${leader.url}${leader.url.includes("?") ? "&" : "?"}utm_source=victus.shrvan.xyz&utm_medium=corner`}
+        target="_blank"
+        rel="noopener sponsored"
+        class="group flex min-w-0 items-center gap-2"
+      >
+        <img
+          src={`https://unavatar.io/${host(leader.url)}?fallback=false`}
+          alt=""
+          width="18"
+          height="18"
+          class="size-[18px] shrink-0 rounded-full bg-panel object-cover"
+          onerror="this.style.visibility='hidden'"
+        />
+        <span class="truncate font-medium transition-colors group-hover:underline">{leader.brand}</span>
+        <span class="data hidden shrink-0 text-ink-dim sm:inline">
+          here for {since(leader.liveAt)}
+          {history.length > 1 && `, ${history.length - 1} before`}
+        </span>
+      </a>
+    ) : (
+      <span class="truncate text-ink-soft">empty right now, first one gets it cheap</span>
+    )
+  }
+  <button type="button" data-open-bid={corner.id} class="ml-auto shrink-0 text-ink-soft transition-colors hover:text-ink">
+    take it for <Money inr={corner.min} class="font-medium text-ink" />
+  </button>
 </div>

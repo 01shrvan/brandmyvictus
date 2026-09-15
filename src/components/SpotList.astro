@@ -1,0 +1,49 @@
+---
+import type { SpotState } from "@/lib/auction";
+import Money from "@/components/Money.astro";
+
+interface Props {
+  spots: SpotState[];
+  closed: boolean;
+}
+
+const { spots, closed } = Astro.props;
+const sizeName = { s: "small", m: "medium", l: "large" } as const;
+---
+
+<ul class="border-t">
+  {
+    spots.map((spot) => (
+      <li data-spot={spot.id} data-zone={spot.zone} class="row-spot border-b">
+        <div class="grid grid-cols-[2.2rem_minmax(0,1fr)_auto] items-center gap-x-3 px-gutter py-3.5">
+          <span class="row-no data text-ink-dim transition-colors">{String(spot.id).padStart(2, "0")}</span>
+          <div class="min-w-0">
+            <p class="truncate font-medium">{spot.label}</p>
+            <p class="data mt-0.5 truncate text-ink-dim">
+              {spot.zone} · {sizeName[spot.size]} · {spot.w / 10}×{spot.h / 10} cm
+              {spot.leader ? (
+                <>
+                  {" · "}
+                  <span class="text-ink-soft">{spot.leader.brand}</span>
+                  {` · ${spot.bids} ${spot.bids === 1 ? "bid" : "bids"}`}
+                </>
+              ) : (
+                " · open"
+              )}
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <Money inr={spot.leader ? spot.leader.amount : spot.start} class:list={["text-step--1 font-medium", !spot.leader && "text-ink-soft"]} />
+            {closed ? (
+              <span class="data w-[4.6rem] text-right text-ink-dim">{spot.leader ? "won" : "closed"}</span>
+            ) : (
+              <button type="button" data-open-bid={spot.id} class="btn w-[4.6rem]">
+                {spot.leader ? "outbid" : "bid"}
+              </button>
+            )}
+          </div>
+        </div>
+      </li>
+    ))
+  }
+</ul>

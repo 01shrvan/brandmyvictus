@@ -19,49 +19,46 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
 }));
 ---
 
-<dialog
-  id="bid-dialog"
-  class="m-auto w-[min(26rem,calc(100vw-2rem))] border bg-ground p-0 text-ink shadow-[0_24px_60px_-20px_rgb(0_0_0/0.35)]"
->
+<dialog id="bid-dialog" class="m-auto w-[min(27rem,calc(100vw-2rem))] rounded-2xl border border-line-strong bg-ground p-0 text-ink shadow-[0_30px_80px_-30px_oklch(0.205_0.012_262/0.45)]">
   <form id="bid-form" class="relative" novalidate>
     <div class="flex items-center justify-between border-b px-5 py-3">
-      <p class="data lowercase text-ink-soft">
+      <p class="data text-ink-dim">
         <span data-f="kind">bid</span> · spot <span data-f="no" class="text-ink"></span>
       </p>
-      <button type="button" data-close class="data text-ink-soft transition-colors hover:text-cobalt">close</button>
+      <button type="button" data-close class="data text-ink-dim transition-colors hover:text-ink">close</button>
     </div>
 
     <div class="space-y-4 px-5 pt-4 pb-5">
       <div>
-        <p class="font-medium" data-f="label"></p>
-        <p class="data mt-0.5 lowercase text-ink-soft" data-f="meta"></p>
+        <p class="text-step-1 font-medium" data-f="label"></p>
+        <p class="data mt-0.5 text-ink-dim" data-f="meta"></p>
       </div>
 
       <label class="block" data-amount-row>
-        <span class="data lowercase text-ink-soft">your bid, in rupees</span>
-        <div class="mt-1 flex items-center border border-rule-strong focus-within:border-cobalt">
-          <span class="px-2.5 text-ink-soft">₹</span>
-          <input name="amount" type="number" inputmode="numeric" step="1" required class="w-full bg-transparent py-2 pr-2.5 text-step-0 font-medium tabular-nums outline-none" />
+        <span class="data text-ink-dim">your bid, in rupees</span>
+        <div class="field mt-1 flex items-center gap-2 py-0">
+          <span class="text-ink-dim">₹</span>
+          <input name="amount" type="number" inputmode="numeric" step="1" required class="w-full bg-transparent py-2 text-step-0 font-medium tabular-nums outline-none" />
         </div>
-        <span class="data mt-1 block lowercase text-ink-soft" data-f="hint"></span>
+        <span class="data mt-1 block text-ink-dim" data-f="hint"></span>
       </label>
 
-      <p class="hidden border-l-2 border-cobalt pl-3 text-step--1" data-claim-row>
-        costs <span class="font-medium" data-f="claim"></span>. no auction, i email you a payment link and it goes live once paid
+      <p class="hidden rounded-lg bg-signal-wash px-3 py-2 text-step--1 text-ink-soft" data-claim-row>
+        costs <span class="font-medium text-ink" data-f="claim"></span>. no auction here, i email you a payment link and it goes live once paid
       </p>
 
       <label class="block">
-        <span class="data lowercase text-ink-soft">brand name</span>
+        <span class="data text-ink-dim">brand name</span>
         <input name="brand" type="text" maxlength="40" required autocomplete="organization" class="field mt-1" />
       </label>
 
       <label class="block">
-        <span class="data lowercase text-ink-soft">website or x profile</span>
-        <input name="url" type="text" maxlength="200" required inputmode="url" placeholder="yourbrand.com" class="field mt-1" />
+        <span class="data text-ink-dim">website or x handle</span>
+        <input name="url" type="text" maxlength="200" required inputmode="url" placeholder="yourbrand.com or @handle" class="field mt-1" />
       </label>
 
       <label class="block">
-        <span class="data lowercase text-ink-soft">email, never shown</span>
+        <span class="data text-ink-dim">email, never shown</span>
         <input name="email" type="email" maxlength="200" required autocomplete="email" class="field mt-1" />
       </label>
 
@@ -73,8 +70,8 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
       <p class="min-h-[1.3em] text-step--1" data-f="status" role="status" aria-live="polite"></p>
 
       <div class="flex items-center justify-between gap-3">
-        <p class="data lowercase text-ink-soft">no card needed to bid</p>
-        <button type="submit" class="btn btn-cobalt" data-f="submit">place bid</button>
+        <p class="data text-ink-dim">no card needed to bid</p>
+        <button type="submit" class="btn btn-signal" data-f="submit">place bid</button>
       </div>
     </div>
   </form>
@@ -112,7 +109,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
     const setStatus = (text: string, tone: "plain" | "error" | "ok" = "plain") => {
       const el = field("status");
       el.textContent = text;
-      el.className = `min-h-[1.3em] text-step--1 ${tone === "error" ? "text-flag" : tone === "ok" ? "text-cobalt" : "text-ink-soft"}`;
+      el.className = `min-h-[1.3em] text-step--1 ${tone === "error" ? "text-flag" : tone === "ok" ? "text-ink" : "text-ink-soft"}`;
     };
 
     const open = (id: number) => {
@@ -220,24 +217,5 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
       }
       submit.disabled = false;
     });
-
-    const hot = (id: string | undefined, on: boolean) => {
-      if (!id) return;
-      document.querySelectorAll(`[data-spot="${id}"]`).forEach((el) => el.classList.toggle("is-hot", on));
-    };
-    for (const type of ["pointerover", "focusin"] as const) {
-      document.addEventListener(type, (event) => {
-        const el = (event.target as Element | null)?.closest<HTMLElement | SVGElement>("[data-spot]");
-        hot(el?.dataset.spot, true);
-      });
-    }
-    for (const type of ["pointerout", "focusout"] as const) {
-      document.addEventListener(type, (event) => {
-        const el = (event.target as Element | null)?.closest<HTMLElement | SVGElement>("[data-spot]");
-        const next = (event as PointerEvent | FocusEvent).relatedTarget as Element | null;
-        if (el && next && el.contains(next)) return;
-        hot(el?.dataset.spot, false);
-      });
-    }
   }
 </script>

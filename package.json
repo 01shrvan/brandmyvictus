@@ -21,6 +21,14 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@types/node": "^26.5.1",
+    "supabase": "^2.117.0",
     "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "supabase",
+      "esbuild",
+      "sharp"
+    ]
   }
 }

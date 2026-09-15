@@ -26,7 +26,7 @@ create or replace function public.place_bid(
 )
 returns table (result text, bid_id uuid, next_min int)
 language plpgsql
-security definer
+security invoker
 set search_path = public
 as $$
 declare
@@ -61,7 +61,7 @@ $$;
 create or replace function public.reject_bid(p_id uuid)
 returns text
 language plpgsql
-security definer
+security invoker
 set search_path = public
 as $$
 declare
@@ -97,7 +97,7 @@ $$;
 create or replace function public.confirm_claim(p_id uuid)
 returns text
 language plpgsql
-security definer
+security invoker
 set search_path = public
 as $$
 declare

@@ -1,10 +1,8 @@
 ---
 import Base from "@/layouts/Base.astro";
-import Shell from "@/components/Shell.astro";
-import RuledHeading from "@/components/RuledHeading.astro";
 import CornerBar from "@/components/CornerBar.astro";
-import SpotMap from "@/components/SpotMap.astro";
-import SpotTable from "@/components/SpotTable.astro";
+import LidPanel from "@/components/LidPanel.astro";
+import SpotList from "@/components/SpotList.astro";
 import BidDialog from "@/components/BidDialog.astro";
 import Money from "@/components/Money.astro";
 import { buildBoard, loadBoard, type Board } from "@/lib/auction";
@@ -23,14 +21,14 @@ try {
 
 Astro.response.headers.set("cache-control", "no-store");
 
-const open = board.spots.filter((s) => !s.leader).length;
+const taken = board.spots.filter((s) => s.leader).length;
 const pct = Math.round((board.raised / AUCTION.goal) * 100);
 const closes = new Date(AUCTION.closesAt);
 const daysLeft = Math.max(0, Math.ceil((closes.getTime() - Date.now()) / 86400000));
 const closeLabel = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" })
   .format(closes)
   .toLowerCase();
-const ticks = Array.from({ length: 11 }, (_, i) => i * 10);
+const cheapest = Math.min(...SPOTS.map((s) => s.start));
 
 const ago = (iso: string) => {
   const minutes = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -42,168 +40,136 @@ const labelFor = (id: number) => SPOTS.find((s) => s.id === id)?.label ?? "";
 ---
 
 <Base>
-  <Shell>
-    <CornerBar slot="bar" corner={board.corner} history={board.cornerHistory} />
+  <CornerBar corner={board.corner} history={board.cornerHistory} />
 
-    <section class="px-gutter pt-14 pb-12">
-      <div class="anim-lift">
-        <p class="data lowercase text-ink-soft">an auction by {SITE.aka} · 11 spots · closes {closeLabel}</p>
-        <h1 class="display mt-4 text-display">your logo on my victus</h1>
-        <p class="mt-4 max-w-measure text-step-1 leading-snug text-ink-soft">
+  <div class="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(25rem,1fr)]">
+    <LidPanel spots={board.spots} />
+
+    <main id="main" class="min-w-0 lg:border-l">
+      <section class="anim-rise px-gutter pt-12 pb-10 lg:pt-16">
+        <p class="data text-ink-dim">an auction by {SITE.aka} · closes {closeLabel}</p>
+        <h1 class="mt-5 text-hero leading-[0.95] font-semibold tracking-[-0.035em]">
+          your logo<br />on my victus
+        </h1>
+        <p class="mt-5 max-w-[34ch] text-step-1 leading-snug text-ink-soft">
           the laptop i build everything on goes to cafes, college, meetups and every screen recording i post. put your brand on it
         </p>
-      </div>
+        <div class="mt-7 flex flex-wrap items-center gap-2.5">
+          <a href="#spots" class="btn btn-signal">pick a spot, from <Money inr={cheapest} /></a>
+          <a href="#how" class="btn">how it works</a>
+        </div>
+      </section>
 
-      <div class="anim-lift mt-6 flex flex-wrap items-center gap-3 [animation-delay:120ms]">
-        <a href="#spots" class="btn btn-cobalt">pick a spot</a>
-        <a href="#how" class="btn">how it works</a>
-      </div>
-
-      <div class="anim-lift mt-12 [animation-delay:200ms]">
-        <dl class="grid grid-cols-2 gap-y-5 border-t pt-4 sm:grid-cols-4">
-          <div>
-            <dt class="data lowercase text-ink-soft">in bids</dt>
-            <dd class="mt-1 text-step-1 font-medium"><Money inr={board.raised} /></dd>
-          </div>
-          <div>
-            <dt class="data lowercase text-ink-soft">of the goal</dt>
-            <dd class="mt-1 text-step-1 font-medium tabular-nums">{pct}%</dd>
-          </div>
-          <div>
-            <dt class="data lowercase text-ink-soft">spots open</dt>
-            <dd class="mt-1 text-step-1 font-medium tabular-nums">{open} <span class="text-ink-soft">of {board.spots.length}</span></dd>
-          </div>
-          <div>
-            <dt class="data lowercase text-ink-soft">closes in</dt>
-            <dd class="mt-1 flex items-baseline gap-2 text-step-1 font-medium tabular-nums">
-              {
-                !board.closed && (
-                  <span class="relative flex size-1.5 shrink-0 -translate-y-[0.2em]">
-                    <span class="anim-mark absolute inline-flex size-full rounded-full bg-cobalt" />
-                    <span class="relative inline-flex size-1.5 rounded-full bg-cobalt" />
-                  </span>
-                )
-              }
-              {board.closed ? "closed" : `${daysLeft}d`}
-            </dd>
-          </div>
-        </dl>
-
-        <div class="mt-6" aria-hidden="true">
-          <div class="relative h-3">
-            <span class="absolute inset-x-0 bottom-0 h-px bg-rule-strong"></span>
-            <span class="anim-rule absolute bottom-0 left-0 h-[3px] bg-cobalt" style={`width:${Math.min(pct, 100)}%`}></span>
-            {
-              ticks.map((t) => (
-                <span
-                  class:list={["absolute bottom-0 w-px bg-rule-strong", t % 50 === 0 ? "h-3" : "h-1.5"]}
-                  style={`left:${t}%`}
-                />
-              ))
-            }
-          </div>
-          <div class="data mt-1.5 flex justify-between lowercase text-ink-soft">
-            <span>₹0</span>
-            <span>goal {formatInr(AUCTION.goal)}, what the laptop cost</span>
+      <section class="grid grid-cols-2 border-y" aria-label="auction so far">
+        <div class="border-r border-b px-gutter py-5">
+          <p class="data text-ink-dim">in bids</p>
+          <p class="mt-1.5 text-step-1 font-medium"><Money inr={board.raised} /></p>
+        </div>
+        <div class="border-b px-gutter py-5">
+          <p class="data text-ink-dim">of {formatInr(AUCTION.goal)}</p>
+          <p class="mt-1.5 text-step-1 font-medium tabular-nums">{pct}%</p>
+        </div>
+        <div class="border-r px-gutter py-5">
+          <p class="data text-ink-dim">closes in</p>
+          <p class="mt-1.5 flex items-center gap-2 text-step-1 font-medium tabular-nums">
+            {!board.closed && <span class="anim-dot inline-block size-2 rounded-full bg-signal ring-1 ring-ink/20" />}
+            {board.closed ? "closed" : `${daysLeft} days`}
+          </p>
+        </div>
+        <div class="px-gutter py-5">
+          <p class="data text-ink-dim">{taken} of {board.spots.length} taken</p>
+          <div class="mt-3 flex gap-1" aria-hidden="true">
+            {board.spots.map((s) => <span class:list={["h-3 flex-1 rounded-[3px]", s.leader ? "bg-lid" : "border border-line-strong"]} />)}
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section id="auction">
-      <div class="px-gutter pb-4">
-        <RuledHeading note="hover a spot, click to bid">the drawing</RuledHeading>
-      </div>
-      <SpotMap spots={board.spots} />
-    </section>
+      <section id="spots" class="scroll-mt-4 pt-12">
+        <div class="flex items-baseline justify-between px-gutter pb-3">
+          <h2 class="text-step-1 font-medium">spots</h2>
+          <p class="data text-ink-dim">{board.connected ? `${board.totalBids} bids so far` : "bidding opens soon"}</p>
+        </div>
+        <SpotList spots={board.spots} closed={board.closed} />
+      </section>
 
-    <section class="px-gutter pt-14" id="spots">
-      <RuledHeading count={board.spots.length} note={board.connected ? `${board.totalBids} bids so far` : "bids open soon"}>spots</RuledHeading>
-      <div class="mt-2">
-        <SpotTable spots={board.spots} closed={board.closed} />
-      </div>
-    </section>
+      <section class="px-gutter pt-12">
+        <h2 class="text-step-1 font-medium">latest bids</h2>
+        {
+          board.recent.length === 0 ? (
+            <p class="mt-3 text-step--1 text-ink-dim">nothing yet. the first bid sets the pace</p>
+          ) : (
+            <ul class="mt-3">
+              {board.recent.map((bid) => (
+                <li class="flex items-baseline gap-3 border-b py-2.5 text-step--1">
+                  <span class="data w-16 shrink-0 text-ink-dim">{ago(bid.createdAt)}</span>
+                  <span class="min-w-0 flex-1 truncate">
+                    <span class:list={["font-medium", bid.status === "outbid" && "text-ink-dim line-through"]}>{bid.brand}</span>
+                    <span class="text-ink-dim"> on {labelFor(bid.spotId)}</span>
+                  </span>
+                  <Money inr={bid.amount} class="data shrink-0" />
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </section>
 
-    <section class="px-gutter pt-14">
-      <RuledHeading>latest bids</RuledHeading>
-      {
-        board.recent.length === 0 ? (
-          <p class="mt-4 text-step--1 text-ink-soft">nothing yet. the first bid sets the pace</p>
-        ) : (
-          <ul class="mt-2">
-            {board.recent.map((bid) => (
-              <li class="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-2 text-step--1">
-                <span class="data shrink-0 text-ink-soft sm:w-rail">{ago(bid.createdAt)}</span>
-                <span class:list={["font-medium", bid.status === "outbid" && "text-ink-soft line-through decoration-rule-strong"]}>
-                  {bid.brand}
-                </span>
-                <span class="text-ink-soft">on {labelFor(bid.spotId)}</span>
-                <span class="leader hidden sm:block" />
-                <Money inr={bid.amount} class="data shrink-0 text-ink" />
+      <section id="how" class="scroll-mt-4 px-gutter pt-14">
+        <h2 class="text-step-1 font-medium">how it works</h2>
+        <ol class="mt-4 space-y-5">
+          {
+            STEPS.map((step, i) => (
+              <li class="grid grid-cols-[2.2rem_minmax(0,1fr)] gap-x-3">
+                <span class="data pt-[0.3em] text-ink-dim">0{i + 1}</span>
+                <div>
+                  <p class="font-medium">{step.title}</p>
+                  <p class="mt-1 text-step--1 leading-relaxed text-ink-soft">{step.note}</p>
+                </div>
               </li>
-            ))}
-          </ul>
-        )
-      }
-    </section>
+            ))
+          }
+        </ol>
+      </section>
 
-    <section class="px-gutter pt-14" id="how">
-      <RuledHeading>how it works</RuledHeading>
-      <ol class="mt-2">
-        {
-          STEPS.map((step, i) => (
-            <li class="py-3">
-              <div class="flex items-baseline gap-4">
-                <span class="data shrink-0 text-ink-soft sm:w-rail">0{i + 1}</span>
-                <span class="font-medium">{step.title}</span>
+      <section id="machine" class="scroll-mt-4 px-gutter pt-14">
+        <h2 class="text-step-1 font-medium">the machine</h2>
+        <dl class="mt-3">
+          {
+            MACHINE.map((row) => (
+              <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-x-3 border-b py-2">
+                <dt class="data pt-[0.25em] text-ink-dim">{row.label}</dt>
+                <dd class="text-step--1">{row.value}</dd>
               </div>
-              <p class="mt-1 max-w-measure text-step--1 leading-relaxed text-ink-soft sm:ml-[calc(var(--spacing-rail)+1rem)]">{step.note}</p>
-            </li>
-          ))
-        }
-      </ol>
-    </section>
+            ))
+          }
+        </dl>
+      </section>
 
-    <section class="px-gutter pt-14" id="machine">
-      <RuledHeading note="the thing your sticker lives on">machine</RuledHeading>
-      <dl class="mt-4 grid grid-cols-[5.5rem_1fr] gap-x-4 gap-y-2 sm:grid-cols-[var(--spacing-rail)_1fr]">
-        {
-          MACHINE.map((row) => (
-            <div class="contents">
-              <dt class="data pt-[0.3em] uppercase text-ink-soft">{row.label}</dt>
-              <dd class="text-step--1">{row.value}</dd>
-            </div>
-          ))
-        }
-      </dl>
-    </section>
+      <section id="faq" class="scroll-mt-4 px-gutter pt-14">
+        <h2 class="text-step-1 font-medium">questions</h2>
+        <div class="mt-3 border-t">
+          {
+            FAQ.map((item) => (
+              <details class="group border-b">
+                <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-3 text-step--1 font-medium transition-colors hover:text-ink-soft [&::-webkit-details-marker]:hidden">
+                  {item.q}
+                  <span class="grid size-5 shrink-0 place-items-center rounded-full border border-line-strong text-ink-dim transition-transform duration-300 group-open:rotate-45" aria-hidden="true">+</span>
+                </summary>
+                <p class="pb-4 text-step--1 leading-relaxed text-ink-soft">{item.a}</p>
+              </details>
+            ))
+          }
+        </div>
+      </section>
 
-    <section class="px-gutter pt-14" id="faq">
-      <RuledHeading count={FAQ.length}>faq</RuledHeading>
-      <div class="mt-2">
-        {
-          FAQ.map((item) => (
-            <details class="group border-b">
-              <summary class="flex cursor-pointer list-none items-baseline justify-between gap-4 py-3 text-step--1 font-medium transition-colors hover:text-cobalt [&::-webkit-details-marker]:hidden">
-                {item.q}
-                <span class="data shrink-0 text-ink-soft transition-transform duration-200 group-open:rotate-45">+</span>
-              </summary>
-              <p class="max-w-measure pb-4 text-step--1 leading-relaxed text-ink-soft">{item.a}</p>
-            </details>
-          ))
-        }
-      </div>
-    </section>
+      <footer class="mt-16 border-t px-gutter py-6">
+        <p class="text-step--1 text-ink-soft">
+          by <a href={SITE.home} class="link">{SITE.owner}</a>, {SITE.location}. questions to <a href={SITE.x} class="link">@01shrvan</a>
+        </p>
+        <p class="data mt-3 text-ink-dim">hp and victus are trademarks of hp inc. this auction isnt affiliated with hp</p>
+      </footer>
+    </main>
+  </div>
 
-    <section class="px-gutter pt-14">
-      <RuledHeading>who</RuledHeading>
-      <p class="mt-4 max-w-measure text-step--1 leading-relaxed text-ink-soft">
-        im {SITE.owner}, a full stack engineer from mumbai who builds in public. more of my work is on{" "}
-        <a href={SITE.home} class="link">shrvan.xyz</a>, questions go to{" "}
-        <a href={SITE.x} class="link">@01shrvan</a> or <a href={`mailto:${SITE.email}`} class="link">{SITE.email}</a>
-      </p>
-    </section>
-
-    <BidDialog spots={[board.corner, ...board.spots]} />
-  </Shell>
+  <BidDialog spots={[board.corner, ...board.spots]} />
 </Base>
