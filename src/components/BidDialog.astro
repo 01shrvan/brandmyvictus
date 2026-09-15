@@ -1,6 +1,6 @@
 ---
 import type { SpotState } from "@/lib/auction";
-import { AUCTION } from "@/lib/site";
+import { AUCTION, SITE } from "@/lib/site";
 
 interface Props {
   spots: SpotState[];
@@ -44,7 +44,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
       </label>
 
       <p class="hidden rounded-lg bg-signal-wash px-3 py-2 text-step--1 text-ink-soft" data-claim-row>
-        costs <span class="font-medium text-ink" data-f="claim"></span>. no auction here, i email you a payment link and it goes live once paid
+        costs <span class="font-medium text-ink" data-f="claim"></span>. no auction and no payment now. i check your request and email you from {SITE.email} with how to pay, it goes live after that
       </p>
 
       <label class="block">
@@ -53,7 +53,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
       </label>
 
       <label class="block">
-        <span class="data text-ink-dim">website or x handle</span>
+        <span class="data text-ink-dim">website or x handle, your logo comes from here</span>
         <input name="url" type="text" maxlength="200" required inputmode="url" placeholder="yourbrand.com or @handle" class="field mt-1" />
       </label>
 
@@ -77,7 +77,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
   </form>
 </dialog>
 
-<script type="application/json" id="spot-data" set:html={JSON.stringify({ spots: payload, step: AUCTION.step }).replace(/</g, "\\u003c")} />
+<script type="application/json" id="spot-data" set:html={JSON.stringify({ spots: payload, step: AUCTION.step, contact: SITE.email }).replace(/</g, "\\u003c")} />
 
 <script>
   type SpotLite = {
@@ -96,7 +96,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
   const form = document.getElementById("bid-form") as HTMLFormElement | null;
 
   if (source && dialog && form) {
-    const { spots, step } = JSON.parse(source.textContent ?? "{}") as { spots: SpotLite[]; step: number };
+    const { spots, step, contact } = JSON.parse(source.textContent ?? "{}") as { spots: SpotLite[]; step: number; contact: string };
     const inr = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
     const rupees = (n: number) => `₹${inr.format(n)}`;
     const field = (name: string) => form.querySelector<HTMLElement>(`[data-f="${name}"]`)!;
@@ -176,32 +176,23 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
           return;
         }
       }
+      data.set("spotId", String(current.id));
+      data.set("amount", String(value));
 
       submit.disabled = true;
       setStatus(claim ? "sending request" : "placing bid");
 
       try {
-        const res = await fetch("/api/bid", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            spotId: current.id,
-            amount: value,
-            brand: data.get("brand"),
-            url: data.get("url"),
-            email: data.get("email"),
-            company: data.get("company"),
-          }),
-        });
+        const res = await fetch("/api/bid", { method: "POST", body: data });
         const body = await res.json().catch(() => ({}));
 
         if (res.ok && body.result === "leading") {
-          setStatus(`you lead at ${rupees(value)}. refreshing`, "ok");
-          setTimeout(() => location.reload(), 1100);
+          setStatus(`you lead at ${rupees(value)}. your logo shows once i approve it`, "ok");
+          setTimeout(() => location.replace(`/?fresh=${Date.now()}`), 1800);
           return;
         }
         if (res.ok && body.result === "pending") {
-          setStatus("got it. payment link coming to your inbox", "ok");
+          setStatus(`request received. i'll email you from ${contact} with how to pay`, "ok");
           return;
         }
         if (body.result === "too_low" && typeof body.min === "number") {
@@ -209,6 +200,9 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
           amount.min = String(body.min);
           amount.value = String(body.min);
           setStatus(`someone just bid higher. minimum is now ${rupees(body.min)}`, "error");
+        } else if (body.result === "too_high" && typeof body.max === "number") {
+          amount.value = String(body.max);
+          setStatus(`thats a big jump. the most you can bid right now is ${rupees(body.max)}`, "error");
         } else {
           setStatus(body.error ?? "that didnt go through, try again", "error");
         }
@@ -217,5 +211,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
       }
       submit.disabled = false;
     });
+
+    if (new URLSearchParams(location.search).has("fresh")) history.replaceState(null, "", location.pathname + location.hash);
   }
 </script>

@@ -25,6 +25,9 @@ const since = (iso: string | null) => {
   {
     leader ? (
       <span class="flex min-w-0 items-center gap-2">
+        {leader.sticker && (
+          <img src={leader.sticker} alt="" width="20" height="20" class="size-5 shrink-0 rounded border border-line bg-vinyl object-contain" />
+        )}
         {leader.url ? (
           <a
             href={`${leader.url}${leader.url.includes("?") ? "&" : "?"}utm_source=victus.shrvan.xyz&utm_medium=corner`}

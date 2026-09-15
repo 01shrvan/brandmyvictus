@@ -19,6 +19,7 @@ export default defineConfig({
     schema: {
       SUPABASE_URL: envField.string({ context: "server", access: "secret", optional: true }),
       SUPABASE_SERVICE_ROLE_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      ADMIN_PASSWORD: envField.string({ context: "server", access: "secret", optional: true }),
     },
   },
 });

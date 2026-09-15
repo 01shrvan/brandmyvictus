@@ -10,8 +10,11 @@ const HEADERS: Record<string, string> = {
   "cross-origin-opener-policy": "same-origin",
 };
 
-export const onRequest = defineMiddleware(async (_context, next) => {
+export const onRequest = defineMiddleware(async (context, next) => {
   const response = await next();
+  if (context.url.pathname.startsWith("/admin") || context.url.pathname.startsWith("/api/")) {
+    response.headers.set("x-robots-tag", "noindex, nofollow");
+  }
   for (const [name, value] of Object.entries(HEADERS)) {
     if (name === "content-security-policy") {
       if (import.meta.env.DEV) continue;

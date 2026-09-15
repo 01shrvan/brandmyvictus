@@ -29,7 +29,20 @@ const aria = leader
   <rect class:list={["plot", leader && "plot-taken"]} x={x} y={y} width={w} height={h} rx="2.4"></rect>
   <text x={x + 4} y={y + 7.4} font-size="4.6" class="svg-mono plot-no">{String(id).padStart(2, "0")}</text>
   {
-    leader && (
+    leader?.sticker && (
+      <image
+        href={leader.sticker}
+        x={x + 4}
+        y={y + 10}
+        width={w - 8}
+        height={h - 18}
+        preserveAspectRatio="xMidYMid meet"
+        class="pointer-events-none"
+      ></image>
+    )
+  }
+  {
+    leader && !leader.sticker && (
       <text
         x={x + w / 2}
         y={y + h / 2 + 0.8}

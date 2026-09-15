@@ -7,6 +7,7 @@ export type Bid = {
   amount: number;
   brand: string;
   url: string | null;
+  sticker: string | null;
   approved: boolean;
   status: "leading" | "outbid";
   createdAt: string;
@@ -44,7 +45,7 @@ export const loadBids = async (): Promise<{ connected: boolean; bids: Bid[] }> =
 
   const { data, error } = await client
     .from("bids")
-    .select("id, spot_id, amount, brand, url, status, approved, created_at, live_at")
+    .select("id, spot_id, amount, brand, url, sticker_path, status, approved, created_at, live_at")
     .in("status", ["leading", "outbid"])
     .order("created_at", { ascending: false });
 
@@ -58,6 +59,7 @@ export const loadBids = async (): Promise<{ connected: boolean; bids: Bid[] }> =
       amount: row.amount,
       brand: row.approved ? row.brand : IN_REVIEW,
       url: row.approved ? row.url : null,
+      sticker: row.approved && row.sticker_path ? `/api/sticker/${row.id}` : null,
       approved: row.approved,
       status: row.status,
       createdAt: row.created_at,
@@ -67,10 +69,13 @@ export const loadBids = async (): Promise<{ connected: boolean; bids: Bid[] }> =
 };
 
 export const buildBoard = (connected: boolean, bids: Bid[]): Board => {
+  const closed = isClosed();
   const stateFor = (spot: Spot): SpotState => {
     const mine = bids.filter((b) => b.spotId === spot.id);
-    const leader = mine.find((b) => b.status === "leading") ?? null;
-    return { ...spot, leader, bids: mine.length, min: minFor(spot, leader) };
+    const current = mine.find((b) => b.status === "leading") ?? null;
+    const winner = mine.filter((b) => b.approved).sort((a, b) => b.amount - a.amount)[0] ?? null;
+    const leader = closed ? winner : current;
+    return { ...spot, leader, bids: mine.length, min: minFor(spot, current) };
   };
 
   const spots = SPOTS.map(stateFor);
@@ -86,10 +91,10 @@ export const buildBoard = (connected: boolean, bids: Bid[]): Board => {
       .slice(0, 5),
     recent: auctionBids.slice(0, 8),
     raised:
-      spots.reduce((sum, s) => sum + (s.leader?.amount ?? 0), 0) +
-      bids.filter((b) => b.spotId === CORNER.id).reduce((sum, b) => sum + b.amount, 0),
+      spots.reduce((sum, s) => sum + (s.leader?.approved ? s.leader.amount : 0), 0) +
+      bids.filter((b) => b.spotId === CORNER.id && b.approved).reduce((sum, b) => sum + b.amount, 0),
     totalBids: auctionBids.length,
-    closed: isClosed(),
+    closed,
   };
 };
 

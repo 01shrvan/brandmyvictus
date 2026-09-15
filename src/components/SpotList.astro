@@ -16,7 +16,13 @@ const sizeName = { s: "small", m: "medium", l: "large" } as const;
     spots.map((spot) => (
       <li data-spot={spot.id} data-zone={spot.zone} class="row-spot border-b">
         <div class="grid grid-cols-[2.2rem_minmax(0,1fr)_auto] items-center gap-x-3 px-gutter py-3.5">
-          <span class="row-no data text-ink-dim transition-colors">{String(spot.id).padStart(2, "0")}</span>
+          <span class="row-no data flex items-center text-ink-dim transition-colors">
+            {spot.leader?.sticker ? (
+              <img src={spot.leader.sticker} alt="" width="28" height="28" loading="lazy" class="size-7 rounded-md border border-line bg-vinyl object-contain p-0.5" />
+            ) : (
+              String(spot.id).padStart(2, "0")
+            )}
+          </span>
           <div class="min-w-0">
             <p class="truncate font-medium">{spot.label}</p>
             <p class="data mt-0.5 truncate text-ink-dim">

@@ -1,0 +1,181 @@
+---
+import Base from "@/layouts/Base.astro";
+import { adminEnabled, isAdmin } from "@/lib/admin";
+import { isClosed } from "@/lib/auction";
+import { db } from "@/lib/db";
+import { formatInr } from "@/lib/money";
+import { ALL_SPOTS, SITE } from "@/lib/site";
+
+export const prerender = false;
+
+Astro.response.headers.set("cache-control", "no-store");
+Astro.response.headers.set("x-robots-tag", "noindex, nofollow");
+
+type Row = {
+  id: string;
+  spot_id: number;
+  amount: number;
+  brand: string;
+  url: string;
+  email: string;
+  status: "pending" | "leading" | "outbid" | "rejected";
+  approved: boolean;
+  sticker_path: string | null;
+  created_at: string;
+};
+
+const enabled = adminEnabled();
+const signedIn = isAdmin(Astro.cookies);
+const error = Astro.url.searchParams.get("e");
+const done = Astro.url.searchParams.get("done");
+const client = db();
+
+let rows: Row[] = [];
+if (signedIn && client) {
+  const { data } = await client
+    .from("bids")
+    .select("id, spot_id, amount, brand, url, email, status, approved, sticker_path, created_at")
+    .order("created_at", { ascending: false })
+    .limit(400);
+  rows = (data ?? []) as Row[];
+}
+
+const label = (id: number) => ALL_SPOTS.find((s) => s.id === id)?.label ?? `spot ${id}`;
+const ago = (iso: string) => {
+  const minutes = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.round(minutes / 60);
+  return hours < 48 ? `${hours}h` : `${Math.round(hours / 24)}d`;
+};
+
+const review = rows.filter((r) => (r.status === "leading" || r.status === "outbid") && !r.approved);
+const corner = rows.filter((r) => r.status === "pending");
+const live = rows.filter((r) => (r.status === "leading" || r.status === "outbid") && r.approved);
+const rejected = rows.filter((r) => r.status === "rejected").slice(0, 20);
+const closed = isClosed();
+const winners = ALL_SPOTS.filter((s) => s.id !== 0)
+  .map((s) => rows.filter((r) => r.spot_id === s.id && r.approved && r.status !== "rejected").sort((a, b) => b.amount - a.amount)[0])
+  .filter((r): r is Row => Boolean(r));
+
+const groups = [
+  { title: "needs review", note: "counts as a bid already, brand and link stay hidden until you approve", rows: review, actions: ["approve", "reject"] },
+  { title: "corner requests", note: "confirm only after they have paid you", rows: corner, actions: ["confirm", "delete"] },
+  { title: "live", note: "approved and showing on the site", rows: live, actions: ["logo", "unlogo", "reject"] },
+  { title: "rejected", note: "last 20", rows: rejected, actions: ["delete"] },
+];
+
+const actionLabel: Record<string, string> = {
+  approve: "approve",
+  reject: "reject",
+  confirm: "confirm paid",
+  delete: "delete",
+  logo: "refetch logo",
+  unlogo: "remove logo",
+};
+---
+
+<Base title="admin" noindex>
+  <main class="mx-auto max-w-5xl px-gutter py-10">
+    <div class="flex items-baseline justify-between gap-4">
+      <h1 class="text-step-1 font-semibold">{SITE.name} admin</h1>
+      {
+        signedIn && (
+          <form method="post" action="/api/admin/logout">
+            <button class="btn" type="submit">sign out</button>
+          </form>
+        )
+      }
+    </div>
+
+    {!enabled && <p class="mt-6 text-step--1 text-ink-soft">admin is off. set ADMIN_PASSWORD (20+ characters) in the environment.</p>}
+
+    {
+      enabled && !signedIn && (
+        <form method="post" action="/api/admin/login" class="mt-8 max-w-sm space-y-3">
+          <label class="block">
+            <span class="data text-ink-dim">password</span>
+            <input name="password" type="password" required autocomplete="current-password" class="field mt-1" />
+          </label>
+          {error === "1" && <p class="text-step--1 text-flag">wrong password</p>}
+          {error === "locked" && <p class="text-step--1 text-flag">too many tries, wait 15 minutes</p>}
+          <button class="btn btn-signal" type="submit">sign in</button>
+        </form>
+      )
+    }
+
+    {
+      signedIn && (
+        <>
+          {done && <p class="mt-4 rounded-lg bg-signal-wash px-3 py-2 text-step--1">{done}</p>}
+
+          {closed && (
+            <section class="mt-10">
+              <h2 class="font-medium">winners</h2>
+              <p class="data mt-1 text-ink-dim">highest approved bid per spot. email them a payment link from {SITE.email}</p>
+              <ul class="mt-3 border-t">
+                {winners.map((r) => (
+                  <li class="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b py-2 text-step--1">
+                    <span class="w-40 truncate">{label(r.spot_id)}</span>
+                    <span class="font-medium">{r.brand}</span>
+                    <span>{formatInr(r.amount)}</span>
+                    <a class="link" href={`mailto:${r.email}?subject=${encodeURIComponent(`you won ${label(r.spot_id)} on brand my victus`)}`}>{r.email}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {groups.map((group) => (
+            <section class="mt-10">
+              <div class="flex items-baseline gap-3">
+                <h2 class="font-medium">{group.title}</h2>
+                <span class="data text-ink-dim">{group.rows.length}</span>
+              </div>
+              <p class="data mt-1 text-ink-dim">{group.note}</p>
+              {group.rows.length === 0 ? (
+                <p class="mt-3 text-step--1 text-ink-dim">nothing here</p>
+              ) : (
+                <ul class="mt-3 border-t">
+                  {group.rows.map((r) => (
+                    <li class="grid gap-3 border-b py-3 text-step--1 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-center">
+                      <div class="grid size-12 place-items-center overflow-hidden rounded-lg border bg-vinyl">
+                        {r.sticker_path ? (
+                          <img src={`/api/admin/sticker/${r.id}`} alt="" width="48" height="48" class="size-12 object-contain" />
+                        ) : (
+                          <span class="data text-ink-dim">none</span>
+                        )}
+                      </div>
+                      <div class="min-w-0">
+                        <p class="truncate">
+                          <span class="font-medium">{r.brand}</span>
+                          <span class="text-ink-soft"> · {formatInr(r.amount)} · {label(r.spot_id)}</span>
+                        </p>
+                        <p class="data mt-0.5 flex flex-wrap gap-x-3 text-ink-dim">
+                          <a class="link" href={r.url} target="_blank" rel="noopener noreferrer nofollow">{r.url}</a>
+                          <a class="link" href={`mailto:${r.email}`}>{r.email}</a>
+                          <span>{r.status}</span>
+                          <span>{ago(r.created_at)} ago</span>
+                        </p>
+                      </div>
+                      <div class="flex flex-wrap gap-2">
+                        {group.actions.map((action) => (
+                          <form method="post" action="/api/admin/action">
+                            <input type="hidden" name="id" value={r.id} />
+                            <input type="hidden" name="action" value={action} />
+                            <button class:list={["btn", (action === "approve" || action === "confirm") && "btn-signal"]} type="submit">
+                              {actionLabel[action]}
+                            </button>
+                          </form>
+                        ))}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ))}
+        </>
+      )
+    }
+  </main>
+</Base>
