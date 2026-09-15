@@ -1,0 +1,89 @@
+---
+import type { SpotState } from "@/lib/auction";
+import Money from "@/components/Money.astro";
+
+interface Props {
+  spots: SpotState[];
+  closed: boolean;
+}
+
+const { spots, closed } = Astro.props;
+const zoneName = { lid: "lid", deck: "deck", brick: "brick", web: "web" } as const;
+const host = (url: string) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+};
+---
+
+<div class="-mx-gutter overflow-x-auto px-gutter">
+  <table class="w-full min-w-[34rem] border-collapse text-left text-step--1">
+    <thead>
+      <tr class="data border-b lowercase text-ink-soft">
+        <th class="w-10 py-2 pr-3 font-normal">no.</th>
+        <th class="py-2 pr-3 font-normal">spot</th>
+        <th class="hidden py-2 pr-3 font-normal sm:table-cell">size mm</th>
+        <th class="py-2 pr-3 font-normal">holder</th>
+        <th class="py-2 pr-3 text-right font-normal">bid</th>
+        <th class="hidden py-2 pr-3 text-right font-normal sm:table-cell">bids</th>
+        <th class="py-2 text-right font-normal"><span class="sr-only">action</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        spots.map((spot) => (
+          <tr data-spot={spot.id} class="border-b transition-colors duration-200">
+            <td class="spot-no data py-3 pr-3 text-ink-soft transition-colors">{String(spot.id).padStart(2, "0")}</td>
+            <td class="py-3 pr-3">
+              <span class="font-medium">{spot.label}</span>
+              <span class="data ml-1.5 text-ink-soft">
+                {zoneName[spot.zone]} · {spot.size}
+              </span>
+            </td>
+            <td class="data hidden py-3 pr-3 text-ink-soft sm:table-cell">
+              {spot.w / 10} × {spot.h / 10} cm
+            </td>
+            <td class="max-w-[12rem] py-3 pr-3">
+              {spot.leader ? (
+                <a
+                  href={`${spot.leader.url}${spot.leader.url.includes("?") ? "&" : "?"}utm_source=victus.shrvan.xyz&utm_medium=sponsor`}
+                  target="_blank"
+                  rel="noopener sponsored"
+                  class="group flex min-w-0 items-center gap-2"
+                >
+                  <img
+                    src={`https://unavatar.io/${host(spot.leader.url)}?fallback=false`}
+                    alt=""
+                    width="18"
+                    height="18"
+                    loading="lazy"
+                    class="size-[18px] shrink-0 border bg-surface object-cover"
+                    onerror="this.style.visibility='hidden'"
+                  />
+                  <span class="truncate transition-colors group-hover:text-cobalt">{spot.leader.brand}</span>
+                </a>
+              ) : (
+                <span class="text-ink-dim">open</span>
+              )}
+            </td>
+            <td class="py-3 pr-3 text-right font-medium">
+              <Money inr={spot.leader ? spot.leader.amount : spot.start} class={spot.leader ? "" : "text-ink-soft"} />
+            </td>
+            <td class="data hidden py-3 pr-3 text-right text-ink-soft sm:table-cell">{spot.bids}</td>
+            <td class="py-3 text-right">
+              {closed ? (
+                <span class="data text-ink-soft">{spot.leader ? "won" : "closed"}</span>
+              ) : (
+                <button type="button" data-open-bid={spot.id} class:list={["btn", !spot.leader && "btn-cobalt"]}>
+                  {spot.leader ? "outbid" : "bid"}
+                </button>
+              )}
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,68 @@
+---
+import type { Bid, SpotState } from "@/lib/auction";
+import Money from "@/components/Money.astro";
+
+interface Props {
+  corner: SpotState;
+  history: Bid[];
+}
+
+const { corner, history } = Astro.props;
+const leader = corner.leader;
+
+const since = (iso: string | null) => {
+  if (!iso) return "";
+  const minutes = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.round(minutes / 60);
+  return hours < 48 ? `${hours}h` : `${Math.round(hours / 24)}d`;
+};
+
+const host = (url: string) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+};
+---
+
+<div class="relative border-t">
+  <div class="flex h-9 items-center gap-3 px-gutter text-step--1">
+    <span class="data shrink-0 lowercase text-ink-soft">the corner</span>
+    {
+      leader ? (
+        <a
+          href={`${leader.url}${leader.url.includes("?") ? "&" : "?"}utm_source=victus.shrvan.xyz&utm_medium=corner`}
+          target="_blank"
+          rel="noopener sponsored"
+          class="group flex min-w-0 items-center gap-2"
+        >
+          <img
+            src={`https://unavatar.io/${host(leader.url)}?fallback=false`}
+            alt=""
+            width="16"
+            height="16"
+            class="size-4 shrink-0 border bg-surface object-cover"
+            onerror="this.style.visibility='hidden'"
+          />
+          <span class="truncate font-medium transition-colors group-hover:text-cobalt">{leader.brand}</span>
+          <span class="data hidden shrink-0 text-ink-soft sm:inline">
+            held {since(leader.liveAt)}
+          </span>
+        </a>
+      ) : (
+        <span class="truncate text-ink-soft">empty. first one gets it cheap</span>
+      )
+    }
+    <span class="leader hidden sm:block"></span>
+    {
+      history.length > 1 && (
+        <span class="data hidden shrink-0 text-ink-soft md:inline">{history.length - 1} before</span>
+      )
+    }
+    <button type="button" data-open-bid={corner.id} class="ml-auto shrink-0 text-cobalt transition-opacity hover:opacity-70 sm:ml-0">
+      take it for <Money inr={corner.min} class="font-medium" />
+    </button>
+  </div>
+</div>

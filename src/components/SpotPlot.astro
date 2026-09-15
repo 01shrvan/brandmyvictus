@@ -1,0 +1,54 @@
+---
+import type { SpotState } from "@/lib/auction";
+import { formatInr, formatUsd } from "@/lib/money";
+
+interface Props {
+  spot: SpotState;
+}
+
+const { spot } = Astro.props;
+const { id, x, y, w, h, leader, min, label } = spot;
+const brand = leader?.brand ?? "";
+const brandSize = leader ? Math.max(4, Math.min(h * 0.26, (w - 12) / Math.max(brand.length * 0.56, 1))) : 0;
+const price = leader ? leader.amount : min;
+const aria = leader
+  ? `spot ${id}, ${label}, held by ${brand} at ${formatInr(leader.amount)}, outbid from ${formatInr(min)}`
+  : `spot ${id}, ${label}, open, bid from ${formatInr(min)}`;
+---
+
+<g data-spot={id} data-open-bid={id} class="cursor-pointer outline-none" tabindex="0" role="button" aria-label={aria}>
+  <rect class:list={["plot", leader && "plot-taken"]} x={x} y={y} width={w} height={h} rx="1.6"></rect>
+  <circle
+    cx={x + 6.6}
+    cy={y + 6.6}
+    r="4.4"
+    class:list={[leader ? "fill-ground stroke-none" : "fill-ground stroke-rule-strong"]}
+    stroke-width="0.5"></circle>
+  <text x={x + 6.6} y={y + 6.9} font-size="4.4" text-anchor="middle" dominant-baseline="middle" class="svg-mono fill-ink">{id}</text>
+  {
+    leader && (
+      <text
+        x={x + w / 2}
+        y={y + h / 2 + 0.6}
+        font-size={brandSize.toFixed(2)}
+        text-anchor="middle"
+        dominant-baseline="middle"
+        class="svg-sans fill-ground"
+      >
+        {brand}
+      </text>
+    )
+  }
+  <text
+    x={x + w - 3}
+    y={y + h - 3.2}
+    font-size="3.9"
+    text-anchor="end"
+    class:list={["svg-mono money-inr", leader ? "fill-ground/70" : "fill-ink-soft"]}>{formatInr(price)}</text>
+  <text
+    x={x + w - 3}
+    y={y + h - 3.2}
+    font-size="3.9"
+    text-anchor="end"
+    class:list={["svg-mono money-usd", leader ? "fill-ground/70" : "fill-ink-soft"]}>{formatUsd(price)}</text>
+</g>

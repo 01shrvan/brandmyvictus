@@ -1,0 +1,14 @@
+---
+import { formatInr, formatUsd } from "@/lib/money";
+
+interface Props {
+  inr: number;
+  class?: string;
+}
+
+const { inr, class: className } = Astro.props;
+---
+
+<span class:list={["tabular-nums", className]} data-inr={inr}>
+  <span class="money-inr">{formatInr(inr)}</span><span class="money-usd">{formatUsd(inr)}</span>
+</span>

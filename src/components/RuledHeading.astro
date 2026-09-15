@@ -1,0 +1,18 @@
+---
+interface Props {
+  count?: number;
+  note?: string;
+  id?: string;
+}
+
+const { count, note, id } = Astro.props;
+---
+
+<div class="flex items-center gap-3" id={id}>
+  <h2 class="shrink-0 text-step--1 font-medium">
+    <slot />
+    {count !== undefined && <sup class="ml-0.5 text-[0.68em] font-normal tabular-nums text-ink-soft">{count}</sup>}
+  </h2>
+  <span class="anim-rule h-px flex-1 bg-rule"></span>
+  {note && <span class="data hidden shrink-0 lowercase text-ink-soft sm:inline">{note}</span>}
+</div>

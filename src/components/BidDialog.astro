@@ -1,0 +1,243 @@
+---
+import type { SpotState } from "@/lib/auction";
+import { AUCTION } from "@/lib/site";
+
+interface Props {
+  spots: SpotState[];
+}
+
+const { spots } = Astro.props;
+const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
+  id,
+  label,
+  zone,
+  size,
+  w,
+  h,
+  min,
+  leader: leader ? { brand: leader.brand, amount: leader.amount } : null,
+}));
+---
+
+<dialog
+  id="bid-dialog"
+  class="m-auto w-[min(26rem,calc(100vw-2rem))] border bg-ground p-0 text-ink shadow-[0_24px_60px_-20px_rgb(0_0_0/0.35)]"
+>
+  <form id="bid-form" class="relative" novalidate>
+    <div class="flex items-center justify-between border-b px-5 py-3">
+      <p class="data lowercase text-ink-soft">
+        <span data-f="kind">bid</span> · spot <span data-f="no" class="text-ink"></span>
+      </p>
+      <button type="button" data-close class="data text-ink-soft transition-colors hover:text-cobalt">close</button>
+    </div>
+
+    <div class="space-y-4 px-5 pt-4 pb-5">
+      <div>
+        <p class="font-medium" data-f="label"></p>
+        <p class="data mt-0.5 lowercase text-ink-soft" data-f="meta"></p>
+      </div>
+
+      <label class="block" data-amount-row>
+        <span class="data lowercase text-ink-soft">your bid, in rupees</span>
+        <div class="mt-1 flex items-center border border-rule-strong focus-within:border-cobalt">
+          <span class="px-2.5 text-ink-soft">₹</span>
+          <input name="amount" type="number" inputmode="numeric" step="1" required class="w-full bg-transparent py-2 pr-2.5 text-step-0 font-medium tabular-nums outline-none" />
+        </div>
+        <span class="data mt-1 block lowercase text-ink-soft" data-f="hint"></span>
+      </label>
+
+      <p class="hidden border-l-2 border-cobalt pl-3 text-step--1" data-claim-row>
+        costs <span class="font-medium" data-f="claim"></span>. no auction, i email you a payment link and it goes live once paid
+      </p>
+
+      <label class="block">
+        <span class="data lowercase text-ink-soft">brand name</span>
+        <input name="brand" type="text" maxlength="40" required autocomplete="organization" class="field mt-1" />
+      </label>
+
+      <label class="block">
+        <span class="data lowercase text-ink-soft">website or x profile</span>
+        <input name="url" type="text" maxlength="200" required inputmode="url" placeholder="yourbrand.com" class="field mt-1" />
+      </label>
+
+      <label class="block">
+        <span class="data lowercase text-ink-soft">email, never shown</span>
+        <input name="email" type="email" maxlength="200" required autocomplete="email" class="field mt-1" />
+      </label>
+
+      <label class="absolute -left-[9999px]" aria-hidden="true">
+        company
+        <input name="company" type="text" tabindex="-1" autocomplete="off" />
+      </label>
+
+      <p class="min-h-[1.3em] text-step--1" data-f="status" role="status" aria-live="polite"></p>
+
+      <div class="flex items-center justify-between gap-3">
+        <p class="data lowercase text-ink-soft">no card needed to bid</p>
+        <button type="submit" class="btn btn-cobalt" data-f="submit">place bid</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<script type="application/json" id="spot-data" set:html={JSON.stringify({ spots: payload, step: AUCTION.step }).replace(/</g, "\\u003c")} />
+
+<script>
+  type SpotLite = {
+    id: number;
+    label: string;
+    zone: string;
+    size: string;
+    w: number;
+    h: number;
+    min: number;
+    leader: { brand: string; amount: number } | null;
+  };
+
+  const source = document.getElementById("spot-data");
+  const dialog = document.getElementById("bid-dialog") as HTMLDialogElement | null;
+  const form = document.getElementById("bid-form") as HTMLFormElement | null;
+
+  if (source && dialog && form) {
+    const { spots, step } = JSON.parse(source.textContent ?? "{}") as { spots: SpotLite[]; step: number };
+    const inr = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
+    const rupees = (n: number) => `₹${inr.format(n)}`;
+    const field = (name: string) => form.querySelector<HTMLElement>(`[data-f="${name}"]`)!;
+    const amount = form.elements.namedItem("amount") as HTMLInputElement;
+    const submit = field("submit") as HTMLButtonElement;
+    const amountRow = form.querySelector<HTMLElement>("[data-amount-row]")!;
+    const claimRow = form.querySelector<HTMLElement>("[data-claim-row]")!;
+    let current: SpotLite | null = null;
+
+    const setStatus = (text: string, tone: "plain" | "error" | "ok" = "plain") => {
+      const el = field("status");
+      el.textContent = text;
+      el.className = `min-h-[1.3em] text-step--1 ${tone === "error" ? "text-flag" : tone === "ok" ? "text-cobalt" : "text-ink-soft"}`;
+    };
+
+    const open = (id: number) => {
+      const spot = spots.find((s) => s.id === id);
+      if (!spot) return;
+      current = spot;
+      const claim = spot.zone === "web";
+      field("kind").textContent = claim ? "claim" : spot.leader ? "outbid" : "bid";
+      field("no").textContent = String(spot.id).padStart(2, "0");
+      field("label").textContent = spot.label;
+      field("meta").textContent = claim
+        ? spot.leader
+          ? `held by ${spot.leader.brand}`
+          : "nobody holds it yet"
+        : `${spot.zone} · ${spot.w / 10} × ${spot.h / 10} cm${spot.leader ? ` · ${spot.leader.brand} leads at ${rupees(spot.leader.amount)}` : " · no bids yet"}`;
+      amountRow.hidden = claim;
+      claimRow.classList.toggle("hidden", !claim);
+      field("claim").textContent = rupees(spot.min);
+      amount.min = String(spot.min);
+      amount.value = String(spot.min);
+      amount.required = !claim;
+      field("hint").textContent = spot.leader ? `at least ${rupees(spot.min)}, steps of ₹${step} or more` : `starts at ${rupees(spot.min)}`;
+      submit.textContent = claim ? "request it" : "place bid";
+      submit.disabled = false;
+      setStatus("");
+      dialog.showModal();
+      (claim ? (form.elements.namedItem("brand") as HTMLInputElement) : amount).focus();
+    };
+
+    document.addEventListener("click", (event) => {
+      const trigger = (event.target as Element | null)?.closest<HTMLElement | SVGElement>("[data-open-bid]");
+      if (trigger) open(Number(trigger.dataset.openBid));
+      if ((event.target as Element | null)?.closest("[data-close]")) dialog.close();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const trigger = (event.target as Element | null)?.closest<SVGElement>("g[data-open-bid]");
+      if (!trigger) return;
+      event.preventDefault();
+      open(Number(trigger.dataset.openBid));
+    });
+
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!current) return;
+      const data = new FormData(form);
+      const claim = current.zone === "web";
+      const value = claim ? current.min : Number(data.get("amount"));
+
+      if (!claim && (!Number.isInteger(value) || value < current.min)) {
+        setStatus(`needs to be at least ${rupees(current.min)}`, "error");
+        amount.focus();
+        return;
+      }
+      for (const name of ["brand", "url", "email"]) {
+        if (!String(data.get(name) ?? "").trim()) {
+          setStatus(`${name} is missing`, "error");
+          (form.elements.namedItem(name) as HTMLInputElement).focus();
+          return;
+        }
+      }
+
+      submit.disabled = true;
+      setStatus(claim ? "sending request" : "placing bid");
+
+      try {
+        const res = await fetch("/api/bid", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            spotId: current.id,
+            amount: value,
+            brand: data.get("brand"),
+            url: data.get("url"),
+            email: data.get("email"),
+            company: data.get("company"),
+          }),
+        });
+        const body = await res.json().catch(() => ({}));
+
+        if (res.ok && body.result === "leading") {
+          setStatus(`you lead at ${rupees(value)}. refreshing`, "ok");
+          setTimeout(() => location.reload(), 1100);
+          return;
+        }
+        if (res.ok && body.result === "pending") {
+          setStatus("got it. payment link coming to your inbox", "ok");
+          return;
+        }
+        if (body.result === "too_low" && typeof body.min === "number") {
+          current.min = body.min;
+          amount.min = String(body.min);
+          amount.value = String(body.min);
+          setStatus(`someone just bid higher. minimum is now ${rupees(body.min)}`, "error");
+        } else {
+          setStatus(body.error ?? "that didnt go through, try again", "error");
+        }
+      } catch {
+        setStatus("network dropped, try again", "error");
+      }
+      submit.disabled = false;
+    });
+
+    const hot = (id: string | undefined, on: boolean) => {
+      if (!id) return;
+      document.querySelectorAll(`[data-spot="${id}"]`).forEach((el) => el.classList.toggle("is-hot", on));
+    };
+    for (const type of ["pointerover", "focusin"] as const) {
+      document.addEventListener(type, (event) => {
+        const el = (event.target as Element | null)?.closest<HTMLElement | SVGElement>("[data-spot]");
+        hot(el?.dataset.spot, true);
+      });
+    }
+    for (const type of ["pointerout", "focusout"] as const) {
+      document.addEventListener(type, (event) => {
+        const el = (event.target as Element | null)?.closest<HTMLElement | SVGElement>("[data-spot]");
+        const next = (event as PointerEvent | FocusEvent).relatedTarget as Element | null;
+        if (el && next && el.contains(next)) return;
+        hot(el?.dataset.spot, false);
+      });
+    }
+  }
+</script>
