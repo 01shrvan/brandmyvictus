@@ -68,16 +68,9 @@ export const ALL_SPOTS: Spot[] = [CORNER, ...SPOTS];
 export const spotById = (id: number) => ALL_SPOTS.find((s) => s.id === id);
 
 export const MACHINE = [
-  { label: "name", value: "astra" },
-  { label: "model", value: "hp victus 15, fb3 series" },
-  { label: "cpu", value: "amd ryzen 5 8645hs, 6 cores, 12 threads" },
-  { label: "gpu", value: "nvidia rtx 3050 laptop 6 gb + radeon 760m" },
-  { label: "memory", value: "16 gb ddr5, 5600 mt/s" },
-  { label: "storage", value: "512 gb nvme ssd" },
-  { label: "display", value: "15.6 in fhd, 144 hz ips" },
-  { label: "body", value: "357.9 × 255 × 23.5 mm, 2.29 kg" },
-  { label: "os", value: "windows 11 home, 25h2" },
-  { label: "daily", value: "next.js, typescript, rust" },
+  { label: "laptop", value: "hp victus 15, black" },
+  { label: "lid", value: "35.8 × 25.5 cm, one small logo, the rest is yours" },
+  { label: "seen at", value: "cafes, meetups, college, video calls, screen recordings" },
 ] as const;
 
 export const STEPS = [
@@ -87,7 +80,7 @@ export const STEPS = [
   },
   {
     title: "bid on it",
-    note: `your bid goes live instantly. anyone can outbid you by ₹${AUCTION.step} or more until the auction closes. no card needed to bid`,
+    note: `your bid counts instantly and anyone can outbid you by ₹${AUCTION.step} or more until it closes. new brands show as in review until i check them. no card needed`,
   },
   {
     title: "your sticker rides along",
@@ -110,7 +103,7 @@ export const FAQ = [
   },
   {
     q: "do i pay when i bid",
-    a: "no. bids are free to place and go live straight away. if you win, i contact you after the auction closes and send a payment link. if you dont pay within 72 hours the spot goes to the next highest bid",
+    a: "no. bids are free to place. new brands show as in review until i check them, then your name and link go live. if you win, i contact you after the auction closes with a payment link. if you dont pay within 72 hours the spot goes to the next highest bid",
   },
   {
     q: "can i get outbid",
@@ -127,5 +120,9 @@ export const FAQ = [
   {
     q: "what happens to the money",
     a: `it pays back what the laptop cost me, ₹${AUCTION.goal.toLocaleString("en-IN")}. anything above that goes into building in public, domains, servers and coffee for the cafes where the stickers get seen`,
+  },
+  {
+    q: "how do i know a message is really from you",
+    a: `i only ever write from ${SITE.email} or dm from @01shrvan on x. i never ask for payment before the auction closes, never ask for otps or passwords, and never send payment links from any other account. if someone else messages you about a spot, its a scam, report it to me`,
   },
 ] as const;

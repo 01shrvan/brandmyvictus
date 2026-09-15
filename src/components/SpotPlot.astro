@@ -11,6 +11,7 @@ const { spot, interactive = true } = Astro.props;
 const { id, x, y, w, h, leader, min, label } = spot;
 const brand = leader?.brand ?? "";
 const brandSize = leader ? Math.max(4, Math.min(h * 0.28, (w - 12) / Math.max(brand.length * 0.56, 1))) : 0;
+const reviewing = Boolean(leader && !leader.approved);
 const price = leader ? leader.amount : min;
 const aria = leader
   ? `spot ${id}, ${label}, held by ${brand} at ${formatInr(leader.amount)}, outbid from ${formatInr(min)}`
@@ -32,10 +33,10 @@ const aria = leader
       <text
         x={x + w / 2}
         y={y + h / 2 + 0.8}
-        font-size={brandSize.toFixed(2)}
+        font-size={reviewing ? "4.2" : brandSize.toFixed(2)}
         text-anchor="middle"
         dominant-baseline="middle"
-        class="svg-sans plot-brand"
+        class:list={[reviewing ? "svg-mono" : "svg-sans", "plot-brand"]}
       >
         {brand}
       </text>

@@ -6,7 +6,8 @@ export type Bid = {
   spotId: number;
   amount: number;
   brand: string;
-  url: string;
+  url: string | null;
+  approved: boolean;
   status: "leading" | "outbid";
   createdAt: string;
   liveAt: string | null;
@@ -29,6 +30,8 @@ export type Board = {
   closed: boolean;
 };
 
+export const IN_REVIEW = "in review";
+
 export const stepFor = (spot: Spot) => (spot.id === CORNER.id ? AUCTION.cornerStep : AUCTION.step);
 
 export const minFor = (spot: Spot, leader: Bid | null) => (leader ? leader.amount + stepFor(spot) : spot.start);
@@ -41,7 +44,7 @@ export const loadBids = async (): Promise<{ connected: boolean; bids: Bid[] }> =
 
   const { data, error } = await client
     .from("bids")
-    .select("id, spot_id, amount, brand, url, status, created_at, live_at")
+    .select("id, spot_id, amount, brand, url, status, approved, created_at, live_at")
     .in("status", ["leading", "outbid"])
     .order("created_at", { ascending: false });
 
@@ -53,8 +56,9 @@ export const loadBids = async (): Promise<{ connected: boolean; bids: Bid[] }> =
       id: row.id,
       spotId: row.spot_id,
       amount: row.amount,
-      brand: row.brand,
-      url: row.url,
+      brand: row.approved ? row.brand : IN_REVIEW,
+      url: row.approved ? row.url : null,
+      approved: row.approved,
       status: row.status,
       createdAt: row.created_at,
       liveAt: row.live_at,

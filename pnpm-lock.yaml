@@ -9,38 +9,41 @@ importers:
   .:
     dependencies:
       '@astrojs/vercel':
-        specifier: ^11.0.10
+        specifier: 11.0.10
         version: 11.0.10(astro@7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.5.1)(@vercel/functions@3.9.7)(jiti@2.7.0)(yaml@2.9.1))
       '@fontsource-variable/martian-mono':
-        specifier: ^5.3.0
+        specifier: 5.3.0
         version: 5.3.0
       '@fontsource-variable/schibsted-grotesk':
-        specifier: ^5.3.0
+        specifier: 5.3.0
         version: 5.3.0
       '@supabase/supabase-js':
-        specifier: ^2.116.0
+        specifier: 2.116.0
         version: 2.116.0
       '@tailwindcss/vite':
-        specifier: ^4.3.3
+        specifier: 4.3.3
         version: 4.3.3(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      '@vercel/analytics':
+        specifier: 2.0.1
+        version: 2.0.1
       astro:
-        specifier: ^7.3.2
+        specifier: 7.3.2
         version: 7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.5.1)(@vercel/functions@3.9.7)(jiti@2.7.0)(yaml@2.9.1)
       tailwindcss:
-        specifier: ^4.3.3
+        specifier: 4.3.3
         version: 4.3.3
     devDependencies:
       '@astrojs/check':
-        specifier: ^0.9.10
+        specifier: 0.9.10
         version: 0.9.10(prettier@3.9.6)(typescript@5.9.3)
       '@types/node':
-        specifier: ^26.5.1
+        specifier: 26.5.1
         version: 26.5.1
       supabase:
-        specifier: ^2.117.0
+        specifier: 2.117.0
         version: 2.117.0
       typescript:
-        specifier: ^5.9.3
+        specifier: 5.9.3
         version: 5.9.3
 
 packages:

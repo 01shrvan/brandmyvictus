@@ -102,6 +102,9 @@ const VIEWS = [
   };
 
   const root = document.documentElement;
+  try {
+    if (localStorage.getItem("currency") === "usd") root.dataset.currency = "usd";
+  } catch {}
   const source = document.getElementById("spot-data");
   const spots: SpotLite[] = source ? JSON.parse(source.textContent ?? "{}").spots ?? [] : [];
   const readout = document.querySelector<HTMLElement>("[data-readout]");

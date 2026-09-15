@@ -18,39 +18,30 @@ const since = (iso: string | null) => {
   return hours < 48 ? `${hours}h` : `${Math.round(hours / 24)}d`;
 };
 
-const host = (url: string) => {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
-};
 ---
 
 <div class="flex min-h-10 items-center gap-3 border-b px-gutter py-2 text-step--1">
   <span class="data shrink-0 rounded-full bg-signal px-2 py-0.5 text-ink">the corner</span>
   {
     leader ? (
-      <a
-        href={`${leader.url}${leader.url.includes("?") ? "&" : "?"}utm_source=victus.shrvan.xyz&utm_medium=corner`}
-        target="_blank"
-        rel="noopener sponsored"
-        class="group flex min-w-0 items-center gap-2"
-      >
-        <img
-          src={`https://unavatar.io/${host(leader.url)}?fallback=false`}
-          alt=""
-          width="18"
-          height="18"
-          class="size-[18px] shrink-0 rounded-full bg-panel object-cover"
-          onerror="this.style.visibility='hidden'"
-        />
-        <span class="truncate font-medium transition-colors group-hover:underline">{leader.brand}</span>
+      <span class="flex min-w-0 items-center gap-2">
+        {leader.url ? (
+          <a
+            href={`${leader.url}${leader.url.includes("?") ? "&" : "?"}utm_source=victus.shrvan.xyz&utm_medium=corner`}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            class="truncate font-medium underline decoration-line-strong underline-offset-4 transition-colors hover:decoration-ink"
+          >
+            {leader.brand}
+          </a>
+        ) : (
+          <span class="truncate font-medium">{leader.brand}</span>
+        )}
         <span class="data hidden shrink-0 text-ink-dim sm:inline">
           here for {since(leader.liveAt)}
           {history.length > 1 && `, ${history.length - 1} before`}
         </span>
-      </a>
+      </span>
     ) : (
       <span class="truncate text-ink-soft">empty right now, first one gets it cheap</span>
     )
