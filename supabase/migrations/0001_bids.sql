@@ -19,6 +19,7 @@ create index bids_email_recent on public.bids (email, created_at desc);
 
 alter table public.bids enable row level security;
 revoke all on table public.bids from anon, authenticated;
+grant select, insert, update, delete on table public.bids to service_role;
 
 create or replace function public.bid_throttled(p_ip_hash text, p_email text)
 returns boolean

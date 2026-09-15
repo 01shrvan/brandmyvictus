@@ -20,6 +20,7 @@
   --color-on-lid: oklch(0.93 0.005 262);
   --color-on-lid-dim: oklch(0.68 0.01 262);
   --color-vinyl: oklch(0.995 0 0);
+  --color-plot-fill: oklch(0.12 0.01 262 / 0.42);
   --color-signal: oklch(0.9 0.165 99);
   --color-signal-wash: oklch(0.9 0.165 99 / 0.22);
   --color-flag: oklch(0.55 0.18 32);
@@ -174,8 +175,8 @@
 }
 
 .plot {
-  fill: transparent;
-  stroke: var(--color-on-lid-dim);
+  fill: var(--color-plot-fill);
+  stroke: var(--color-on-lid);
   stroke-width: 0.6;
   stroke-dasharray: 3 2;
   transition:

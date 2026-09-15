@@ -2,7 +2,7 @@
 import type { SpotState } from "@/lib/auction";
 import LidDrawing from "@/components/LidDrawing.astro";
 import SpotPlot from "@/components/SpotPlot.astro";
-import { LID, SITE } from "@/lib/site";
+import { LID, PHOTOS, SITE } from "@/lib/site";
 
 interface Props {
   spots: SpotState[];
@@ -55,17 +55,12 @@ const VIEWS = [
     <div id="view-deck" class="view w-full max-w-[56rem]" data-view="deck" role="tabpanel">
       <svg viewBox="-24 -26 406 305" class="block h-auto max-h-[calc(100dvh-9rem)] w-full" role="group" aria-label="deck, sticker spots to scale">
         <defs>
-          <pattern id="keys-main" x="16" y="20" width="16.66" height="19.33" patternUnits="userSpaceOnUse">
-            <rect x="1" y="1" width="14.66" height="17.33" rx="2" class="fill-lid-key stroke-lid-edge" stroke-width="0.4"></rect>
-          </pattern>
-          <pattern id="keys-num" x="274" y="20" width="17" height="19.33" patternUnits="userSpaceOnUse">
-            <rect x="1" y="1" width="15" height="17.33" rx="2" class="fill-lid-key stroke-lid-edge" stroke-width="0.4"></rect>
-          </pattern>
+          <clipPath id="deck-clip">
+            <rect x="0" y="0" width={W} height={H} rx="9"></rect>
+          </clipPath>
         </defs>
-        <rect x="0" y="0" width={W} height={H} rx="10" class="fill-lid stroke-lid" stroke-width="0.7"></rect>
-        <rect x="16" y="20" width="250" height="116" fill="url(#keys-main)"></rect>
-        <rect x="274" y="20" width="68" height="116" fill="url(#keys-num)"></rect>
-        <rect x="97" y="150" width="110" height="72" rx="4" class="fill-none stroke-lid-edge" stroke-width="0.8"></rect>
+        <rect x="0" y="0" width={W} height={H} rx="9" class="fill-lid"></rect>
+        <image href={PHOTOS.deck.src} x="0" y="0" width={W} height={H} preserveAspectRatio="none" clip-path="url(#deck-clip)"></image>
         {deck.map((spot) => <SpotPlot spot={spot} />)}
       </svg>
     </div>
@@ -84,7 +79,7 @@ const VIEWS = [
     <p class="data hidden shrink-0 items-center gap-3 text-ink-dim sm:flex">
       <span class="inline-flex items-center gap-1.5"><span class="inline-block size-2.5 rounded-[3px] border border-dashed border-ink-dim"></span>open</span>
       <span class="inline-flex items-center gap-1.5"><span class="inline-block size-2.5 rounded-[3px] bg-lid"></span>taken</span>
-      <span>to scale, mm</span>
+      <span>real victus 15, spots to scale</span>
     </p>
   </div>
 </aside>

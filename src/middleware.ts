@@ -13,7 +13,12 @@ const HEADERS: Record<string, string> = {
 export const onRequest = defineMiddleware(async (_context, next) => {
   const response = await next();
   for (const [name, value] of Object.entries(HEADERS)) {
-    if (name === "content-security-policy" && import.meta.env.DEV) continue;
+    if (name === "content-security-policy") {
+      if (import.meta.env.DEV) continue;
+      const existing = response.headers.get(name);
+      response.headers.set(name, existing ? `${existing.replace(/;\s*$/, "")}; ${value}` : value);
+      continue;
+    }
     response.headers.set(name, value);
   }
   return response;

@@ -47,19 +47,27 @@ export const CORNER: Spot = {
   start: AUCTION.cornerStart,
 };
 
-export const LID = { w: 357.9, h: 255, mark: { x: 178.95, y: 127.5, r: 17 } } as const;
+export const LID = { w: 357.9, h: 255 } as const;
+
+export const PHOTOS = {
+  credit: "OhanaUnited",
+  license: "cc by-sa 4.0",
+  licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+  lid: { src: "/photos/lid.webp", source: "https://commons.wikimedia.org/wiki/File:HP_Victus_laptop.jpg" },
+  deck: { src: "/photos/deck.webp", source: "https://commons.wikimedia.org/wiki/File:HP_Victus_laptop_2.jpg" },
+} as const;
 
 export const SPOTS: Spot[] = [
-  { id: 1, zone: "lid", label: "marquee above the mark", size: "l", w: 120, h: 40, x: 118.95, y: 22, start: 2499 },
-  { id: 2, zone: "lid", label: "top left", size: "l", w: 90, h: 55, x: 18, y: 22, start: 1999 },
-  { id: 3, zone: "lid", label: "top right", size: "l", w: 90, h: 55, x: 249.9, y: 22, start: 1999 },
-  { id: 4, zone: "lid", label: "left of the mark", size: "m", w: 60, h: 60, x: 70, y: 97.5, start: 999 },
-  { id: 5, zone: "lid", label: "right of the mark", size: "m", w: 60, h: 60, x: 227.9, y: 97.5, start: 999 },
-  { id: 6, zone: "lid", label: "bottom left", size: "l", w: 90, h: 55, x: 18, y: 178, start: 1499 },
-  { id: 7, zone: "lid", label: "bottom right", size: "l", w: 90, h: 55, x: 249.9, y: 178, start: 1499 },
-  { id: 8, zone: "lid", label: "marquee above the hinge", size: "l", w: 120, h: 40, x: 118.95, y: 193, start: 1999 },
-  { id: 9, zone: "deck", label: "left palm rest", size: "s", w: 40, h: 40, x: 30, y: 172, start: 299 },
-  { id: 10, zone: "deck", label: "right palm rest", size: "s", w: 40, h: 40, x: 287.9, y: 172, start: 299 },
+  { id: 1, zone: "lid", label: "marquee above the V", size: "l", w: 120, h: 40, x: 118.95, y: 30, start: 2499 },
+  { id: 2, zone: "lid", label: "top left", size: "l", w: 90, h: 55, x: 16, y: 16, start: 1999 },
+  { id: 3, zone: "lid", label: "top right", size: "l", w: 90, h: 55, x: 251.9, y: 16, start: 1999 },
+  { id: 4, zone: "lid", label: "left of the V", size: "m", w: 60, h: 60, x: 60, y: 90, start: 999 },
+  { id: 5, zone: "lid", label: "right of the V", size: "m", w: 60, h: 60, x: 237.9, y: 90, start: 999 },
+  { id: 6, zone: "lid", label: "bottom left", size: "l", w: 90, h: 55, x: 16, y: 170, start: 1499 },
+  { id: 7, zone: "lid", label: "bottom right", size: "l", w: 90, h: 55, x: 251.9, y: 170, start: 1499 },
+  { id: 8, zone: "lid", label: "marquee above the hinge", size: "l", w: 120, h: 40, x: 118.95, y: 184, start: 1999 },
+  { id: 9, zone: "deck", label: "left palm rest", size: "s", w: 40, h: 40, x: 30, y: 186, start: 299 },
+  { id: 10, zone: "deck", label: "right palm rest", size: "s", w: 40, h: 40, x: 242, y: 186, start: 299 },
   { id: 11, zone: "brick", label: "charger brick", size: "m", w: 90, h: 45, x: 30, y: 20, start: 599 },
 ];
 

@@ -6,7 +6,7 @@ import SpotList from "@/components/SpotList.astro";
 import BidDialog from "@/components/BidDialog.astro";
 import Money from "@/components/Money.astro";
 import { buildBoard, loadBoard, type Board } from "@/lib/auction";
-import { AUCTION, FAQ, MACHINE, SITE, SPOTS, STEPS } from "@/lib/site";
+import { AUCTION, FAQ, MACHINE, PHOTOS, SITE, SPOTS, STEPS } from "@/lib/site";
 import { formatInr } from "@/lib/money";
 
 export const prerender = false;
@@ -167,6 +167,9 @@ const labelFor = (id: number) => SPOTS.find((s) => s.id === id)?.label ?? "";
           by <a href={SITE.home} class="link">{SITE.owner}</a>, {SITE.location}. questions to <a href={SITE.x} class="link">@01shrvan</a>
         </p>
         <p class="data mt-3 text-ink-dim">hp and victus are trademarks of hp inc. this auction isnt affiliated with hp</p>
+        <p class="data mt-1.5 text-ink-dim">
+          laptop photos by <a href={PHOTOS.lid.source} class="link" rel="noopener noreferrer" target="_blank">{PHOTOS.credit}</a>, <a href={PHOTOS.licenseUrl} class="link" rel="noopener noreferrer" target="_blank">{PHOTOS.license}</a>, straightened and darkened
+        </p>
       </footer>
     </main>
   </div>
