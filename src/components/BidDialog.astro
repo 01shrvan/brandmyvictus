@@ -44,7 +44,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
       </label>
 
       <p class="hidden rounded-lg bg-signal-wash px-3 py-2 text-step--1 text-ink-soft" data-claim-row>
-        costs <span class="font-medium text-ink" data-f="claim"></span>. no auction and no payment now. i check your request and email you from {SITE.email} with how to pay, it goes live after that
+        costs <span class="font-medium text-ink" data-f="claim"></span>. no auction here. you get an email with how to pay, and it goes live once i confirm the payment
       </p>
 
       <label class="block">
@@ -187,12 +187,12 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
         const body = await res.json().catch(() => ({}));
 
         if (res.ok && body.result === "leading") {
-          setStatus(`you lead at ${rupees(value)}. your logo shows once i approve it`, "ok");
+          setStatus(`you lead at ${rupees(value)}. check your inbox, your logo shows once i approve it`, "ok");
           setTimeout(() => location.replace(`/?fresh=${Date.now()}`), 1800);
           return;
         }
         if (res.ok && body.result === "pending") {
-          setStatus(`request received. i'll email you from ${contact} with how to pay`, "ok");
+          setStatus(`request received. check your inbox for how to pay`, "ok");
           return;
         }
         if (body.result === "too_low" && typeof body.min === "number") {

@@ -2,7 +2,8 @@ import type { APIRoute } from "astro";
 import { clientIp, hashIp, sameOrigin } from "@/lib/admin";
 import { isClosed, stepFor } from "@/lib/auction";
 import { db } from "@/lib/db";
-import { CORNER, spotById } from "@/lib/site";
+import { mails, sendAll } from "@/lib/mail";
+import { AUCTION, CORNER, spotById } from "@/lib/site";
 
 export const prerender = false;
 
@@ -84,6 +85,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     const row = Array.isArray(data) ? data[0] : data;
     if (row?.result === "rate_limited") return json({ error: "too many requests, try again in a few minutes" }, 429);
     if (row?.result !== "pending" || !row.bid_id) return json({ error: "couldnt save that, try again" }, 500);
+    await sendAll([
+      mails.adminClaim({ amount: row.amount, brand, url, email }),
+      mails.claimReceived({ to: email, amount: row.amount, id: row.bid_id }),
+    ]);
     return json({ result: "pending", amount: row.amount });
   }
 
@@ -109,6 +114,11 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   if (row?.result === "too_low") return json({ result: "too_low", min: row.next_min, max: row.max_amount }, 409);
   if (row?.result === "too_high") return json({ result: "too_high", min: row.next_min, max: row.max_amount }, 409);
   if (row?.result === "leading" && row.bid_id) {
+    await sendAll([
+      mails.adminBid({ spot: spot.label, amount, brand, url, email }),
+      mails.bidPlaced({ to: email, spot: spot.label, amount }),
+      row.outbid_email ? mails.outbid({ to: row.outbid_email, spot: spot.label, amount, next: amount + AUCTION.step }) : null,
+    ]);
     return json({ result: "leading", next: row.next_min });
   }
 

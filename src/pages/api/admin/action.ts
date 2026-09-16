@@ -1,12 +1,17 @@
 import type { APIRoute } from "astro";
 import { isAdmin, sameOrigin } from "@/lib/admin";
 import { db } from "@/lib/db";
+import { isClosed } from "@/lib/auction";
 import { fetchLogo, removeLogo } from "@/lib/logo";
+import { mails, sendAll } from "@/lib/mail";
+import { ALL_SPOTS, CORNER } from "@/lib/site";
 import { UUID } from "@/lib/stickers";
 
 export const prerender = false;
 
-const ACTIONS = new Set(["approve", "reject", "confirm", "delete", "logo", "unlogo"]);
+const ACTIONS = new Set(["approve", "reject", "confirm", "delete", "logo", "unlogo", "notify_winners"]);
+
+const spotLabel = (id: number) => ALL_SPOTS.find((s) => s.id === id)?.label ?? `spot ${id}`;
 
 const back = (note: string) =>
   new Response(null, { status: 303, headers: { location: `/admin?done=${encodeURIComponent(note)}`, "cache-control": "no-store" } });
@@ -24,15 +29,43 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   } catch {
     return back("bad request");
   }
-  if (!UUID.test(id) || !ACTIONS.has(action)) return back("bad request");
+  if (!ACTIONS.has(action)) return back("bad request");
 
-  const { data: bid } = await client.from("bids").select("id, url, status").eq("id", id).maybeSingle();
+  if (action === "notify_winners") {
+    if (!isClosed()) return back("the auction is still open");
+    const { data: rows } = await client
+      .from("bids")
+      .select("id, spot_id, amount, email, winner_notified_at")
+      .eq("approved", true)
+      .in("status", ["leading", "outbid"])
+      .neq("spot_id", CORNER.id);
+    const best = new Map<number, { id: string; spot_id: number; amount: number; email: string; winner_notified_at: string | null }>();
+    for (const row of rows ?? []) {
+      const current = best.get(row.spot_id);
+      if (!current || row.amount > current.amount) best.set(row.spot_id, row);
+    }
+    const pending = [...best.values()].filter((row) => !row.winner_notified_at);
+    let sent = 0;
+    for (const row of pending) {
+      const [result] = await sendAll([mails.winner({ to: row.email, spot: spotLabel(row.spot_id), amount: row.amount, id: row.id })]);
+      if (result?.status === "fulfilled" && result.value) {
+        await client.from("bids").update({ winner_notified_at: new Date().toISOString() }).eq("id", row.id);
+        sent += 1;
+      }
+    }
+    return back(`emailed ${sent} of ${pending.length} winners`);
+  }
+
+  if (!UUID.test(id)) return back("bad request");
+
+  const { data: bid } = await client.from("bids").select("id, url, status, email, spot_id").eq("id", id).maybeSingle();
   if (!bid) return back("bid not found");
 
   if (action === "approve") {
     const { data } = await client.rpc("approve_bid", { p_id: id });
     if (data !== "approved") return back("could not approve");
     const logo = await fetchLogo(client, id, bid.url);
+    await sendAll([mails.approved({ to: bid.email, spot: spotLabel(bid.spot_id) })]);
     return back(logo ? "approved with logo" : "approved, no logo found");
   }
 
@@ -40,6 +73,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const { data } = await client.rpc("confirm_claim", { p_id: id });
     if (data !== "confirmed") return back("could not confirm");
     const logo = await fetchLogo(client, id, bid.url);
+    await sendAll([mails.claimLive({ to: bid.email })]);
     return back(logo ? "corner confirmed with logo" : "corner confirmed, no logo found");
   }
 

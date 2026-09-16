@@ -131,6 +131,6 @@ export const FAQ = [
   },
   {
     q: "how do i know a message is really from you",
-    a: `i only ever write from ${SITE.email} or dm from @01shrvan on x. i never ask for payment before the auction closes, never ask for otps or passwords, and never send payment links from any other account. if someone else messages you about a spot, its a scam, report it to me`,
+    a: `auction emails only come from victus@shrvan.xyz and replies go to ${SITE.email}. i never ask for otps or passwords, and payment details only ever come in those emails. if anyone else messages you about a spot, its a scam, report it to me`,
   },
 ] as const;

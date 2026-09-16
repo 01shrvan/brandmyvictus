@@ -20,6 +20,8 @@ export default defineConfig({
       SUPABASE_URL: envField.string({ context: "server", access: "secret", optional: true }),
       SUPABASE_SERVICE_ROLE_KEY: envField.string({ context: "server", access: "secret", optional: true }),
       ADMIN_PASSWORD: envField.string({ context: "server", access: "secret", optional: true }),
+      BREVO_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      UPI_ID: envField.string({ context: "server", access: "secret", optional: true }),
     },
   },
 });
