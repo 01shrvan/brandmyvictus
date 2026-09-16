@@ -70,7 +70,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
       <p class="min-h-[1.3em] text-step--1" data-f="status" role="status" aria-live="polite"></p>
 
       <div class="flex items-center justify-between gap-3">
-        <p class="data text-ink-dim">no card needed to bid</p>
+        <p class="data text-ink-dim">no card needed. you confirm by email</p>
         <button type="submit" class="btn btn-signal" data-f="submit">place bid</button>
       </div>
     </div>
@@ -194,9 +194,12 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
         const res = await fetch("/api/bid", { method: "POST", body: data });
         const body = await res.json().catch(() => ({}));
 
-        if (res.ok && body.result === "leading") {
-          setStatus(`you lead at ${rupees(value)}. check your inbox, your logo is on the spot now`, "ok");
-          setTimeout(() => location.replace(`/?fresh=${Date.now()}`), 1800);
+        if (res.ok && body.result === "check_email") {
+          setStatus("check your inbox and press confirm. the bid counts from that moment", "ok");
+          finished = true;
+          submit.textContent = "close";
+          submit.disabled = false;
+          submit.removeAttribute("aria-busy");
           return;
         }
         if (res.ok && body.result === "pending") {

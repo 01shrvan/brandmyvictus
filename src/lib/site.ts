@@ -88,7 +88,7 @@ export const STEPS = [
   },
   {
     title: "bid on it",
-    note: `your name and logo land on the spot straight away, pulled from your link. anyone can outbid you by ₹${AUCTION.step} or more until it closes. no card needed`,
+    note: `you get an email to confirm its really you. press it and your name and logo land on the spot, pulled from your link. anyone can outbid you by ₹${AUCTION.step} or more until it closes. no card needed`,
   },
   {
     title: "your sticker rides along",
@@ -111,7 +111,7 @@ export const FAQ = [
   },
   {
     q: "do i pay when i bid",
-    a: "no. bids are free to place and show up straight away with your logo. your link becomes clickable once i check it. if you win, i email you after the auction closes with how to pay. if you dont pay within 72 hours the spot goes to the next highest bid",
+    a: "no. bids are free. you confirm the bid from your email, then your name and logo show up with your link going live once i check it. if you win, i email you after the auction closes with how to pay. if you dont pay within 72 hours the spot goes to the next highest bid",
   },
   {
     q: "can i get outbid",

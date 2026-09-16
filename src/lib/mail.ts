@@ -86,15 +86,15 @@ export const mails = {
     ],
   }),
 
-  bidPlaced: (p: { to: string; spot: string; amount: number }): Mail => ({
+  confirmBid: (p: { to: string; id: string; spot: string; amount: number }): Mail => ({
     to: p.to,
-    subject: `your bid on ${p.spot} is in`,
+    subject: `confirm your ${formatInr(p.amount)} bid on ${p.spot}`,
     lines: [
-      `your bid of ${formatInr(p.amount)} on the ${p.spot} spot is in.`,
-      `your name and logo are on the spot already. your link becomes clickable once i check it, usually within a day. you'll get an email if someone outbids you. bidding closes ${closeLabel()}.`,
+      `one click and your bid on the ${p.spot} spot counts: ${actionUrl(SITE.url, "confirm", p.id)}`,
+      `until you press it, nothing shows on the site and nobody sees your name. the link works for 2 hours.`,
+      `once confirmed, your name and logo go on the spot, your link becomes clickable after i check it, and you get an email if someone outbids you. bidding closes ${closeLabel()}.`,
       `no payment now. you only pay if you win.`,
-      `didn't place this bid? ignore this email, nothing happens.`,
-      `${SITE.url}`,
+      `didn't place this bid? ignore this email and nothing happens.`,
     ],
   }),
 

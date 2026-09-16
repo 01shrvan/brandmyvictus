@@ -1,0 +1,65 @@
+---
+import Base from "@/layouts/Base.astro";
+import { db } from "@/lib/db";
+import { formatInr } from "@/lib/money";
+import { ALL_SPOTS } from "@/lib/site";
+import { UUID } from "@/lib/stickers";
+import { verifyAction } from "@/lib/tokens";
+
+export const prerender = false;
+
+Astro.response.headers.set("cache-control", "no-store");
+Astro.response.headers.set("x-robots-tag", "noindex, nofollow");
+
+const { id = "", token = "" } = Astro.params;
+const done = Astro.url.searchParams.get("done");
+const client = db();
+const valid = UUID.test(id) && verifyAction("confirm", id, token);
+
+let bid: { brand: string; amount: number; spot_id: number; status: string } | null = null;
+if (valid && client) {
+  const { data } = await client.from("bids").select("brand, amount, spot_id, status").eq("id", id).maybeSingle();
+  bid = data;
+}
+
+const spot = bid ? (ALL_SPOTS.find((s) => s.id === bid.spot_id)?.label ?? `spot ${bid.spot_id}`) : "";
+const waiting = bid?.status === "unconfirmed";
+const live = bid?.status === "leading";
+---
+
+<Base title="confirm your bid" noindex>
+  <main class="mx-auto max-w-lg px-gutter py-16">
+    {
+      !valid || !bid ? (
+        <>
+          <h1 class="text-step-1 font-semibold">this link is dead</h1>
+          <p class="mt-2 text-step--1 text-ink-soft">it was already used, or it expired. place the bid again from the front page.</p>
+          <a href="/" class="btn btn-signal mt-6">back to the auction</a>
+        </>
+      ) : (
+        <>
+          <h1 class="text-step-1 font-semibold">{waiting ? "confirm your bid" : live ? "your bid is live" : "this bid is done"}</h1>
+          <p class="mt-2 text-step--1 text-ink-soft">
+            {formatInr(bid.amount)} on the {spot} spot, as {bid.brand}.
+          </p>
+
+          {done && <p class="mt-4 rounded-lg bg-signal-wash px-3 py-2 text-step--1">{done}</p>}
+
+          {waiting && (
+            <form method="post" action="/api/bid/confirm" class="mt-6">
+              <input type="hidden" name="id" value={id} />
+              <input type="hidden" name="token" value={token} />
+              <button class="btn btn-signal" type="submit">yes, thats my bid</button>
+            </form>
+          )}
+
+          {waiting && (
+            <p class="data mt-4 text-ink-dim">didnt place this bid? close this page and nothing happens. the bid never counts until you press the button.</p>
+          )}
+
+          {!waiting && <a href="/" class="btn btn-signal mt-6">see the auction</a>}
+        </>
+      )
+    }
+  </main>
+</Base>

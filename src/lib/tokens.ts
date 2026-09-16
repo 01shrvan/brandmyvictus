@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { ADMIN_PASSWORD, SUPABASE_SERVICE_ROLE_KEY } from "astro:env/server";
 
-export const TOKEN_ACTIONS = ["approve", "reject"] as const;
+export const TOKEN_ACTIONS = ["approve", "reject", "confirm"] as const;
 export type TokenAction = (typeof TOKEN_ACTIONS)[number];
 
 const key = () => `${SUPABASE_SERVICE_ROLE_KEY ?? ""}:${ADMIN_PASSWORD ?? ""}`;

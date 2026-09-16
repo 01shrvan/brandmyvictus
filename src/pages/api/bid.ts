@@ -2,9 +2,8 @@ import type { APIRoute } from "astro";
 import { clientIp, hashIp, sameOrigin } from "@/lib/admin";
 import { isClosed, stepFor } from "@/lib/auction";
 import { db } from "@/lib/db";
-import { fetchLogo } from "@/lib/logo";
-import { mails, sendAll } from "@/lib/mail";
-import { AUCTION, CORNER, spotById } from "@/lib/site";
+import { mailEnabled, mails, sendAll } from "@/lib/mail";
+import { CORNER, spotById } from "@/lib/site";
 
 export const prerender = false;
 
@@ -97,7 +96,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return json({ error: "bid should be a whole number of rupees" }, 400);
   }
 
-  const { data, error } = await client.rpc("place_bid", {
+  const { data, error } = await client.rpc("stage_bid", {
     p_spot: spot.id,
     p_amount: amount,
     p_brand: brand,
@@ -114,15 +113,11 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   if (row?.result === "rate_limited") return json({ error: "too many bids from you, try again in a few minutes" }, 429);
   if (row?.result === "too_low") return json({ result: "too_low", min: row.next_min, max: row.max_amount }, 409);
   if (row?.result === "too_high") return json({ result: "too_high", min: row.next_min, max: row.max_amount }, 409);
-  if (row?.result === "leading" && row.bid_id) {
-    await fetchLogo(client, row.bid_id, url);
-    const { data: quiet } = await client.rpc("mail_throttled", { p_email: email });
-    await sendAll([
-      mails.adminBid({ id: row.bid_id, spot: spot.label, amount, brand, url, email }),
-      quiet === true ? null : mails.bidPlaced({ to: email, spot: spot.label, amount }),
-      row.outbid_email ? mails.outbid({ to: row.outbid_email, spot: spot.label, amount, next: amount + AUCTION.step }) : null,
-    ]);
-    return json({ result: "leading", next: row.next_min });
+  if (row?.result === "staged" && row.bid_id) {
+    if (!mailEnabled()) return json({ error: "bidding is paused for a moment, try again shortly" }, 503);
+    const [sent] = await sendAll([mails.confirmBid({ to: email, id: row.bid_id, spot: spot.label, amount })]);
+    if (sent?.status !== "fulfilled" || !sent.value) return json({ error: "couldnt email you the confirm link, check the address" }, 502);
+    return json({ result: "check_email" });
   }
 
   return json({ error: "couldnt place that bid, try again" }, 500);

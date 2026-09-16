@@ -19,7 +19,7 @@ type Row = {
   brand: string;
   url: string;
   email: string;
-  status: "pending" | "leading" | "outbid" | "rejected";
+  status: "unconfirmed" | "pending" | "leading" | "outbid" | "rejected";
   approved: boolean;
   sticker_path: string | null;
   created_at: string;
@@ -49,6 +49,7 @@ const ago = (iso: string) => {
   return hours < 48 ? `${hours}h` : `${Math.round(hours / 24)}d`;
 };
 
+const waiting = rows.filter((r) => r.status === "unconfirmed");
 const review = rows.filter((r) => r.status === "leading" && !r.approved);
 const corner = rows.filter((r) => r.status === "pending");
 const live = rows.filter((r) => r.status === "leading" && r.approved);
@@ -61,6 +62,7 @@ const winners = ALL_SPOTS.filter((s) => s.id !== 0)
 const groups = [
   { title: "needs a look", note: "leading right now. the name and logo are already up, the link is not clickable until you ok it", rows: review, actions: ["approve", "reject"] },
   { title: "corner requests", note: "confirm only after they have paid you", rows: corner, actions: ["confirm", "delete"] },
+  { title: "waiting on their email", note: "bid placed but not confirmed from their inbox yet. invisible to everyone until they press the button", rows: waiting, actions: ["delete"] },
   { title: "cleared", note: "name, logo and link all live", rows: live, actions: ["logo", "unlogo", "reject"] },
   { title: "history", note: "outbid and rejected, last 20. nothing to do here unless you want them gone", rows: history, actions: ["delete"] },
 ];
