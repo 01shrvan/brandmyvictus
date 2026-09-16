@@ -2,6 +2,8 @@
 import type { SpotState } from "@/lib/auction";
 import Money from "@/components/Money.astro";
 
+const tagged = (url: string, medium: string) => `${url}${url.includes("?") ? "&" : "?"}utm_source=victus.shrvan.xyz&utm_medium=${medium}`;
+
 interface Props {
   spots: SpotState[];
   closed: boolean;
@@ -30,7 +32,18 @@ const sizeName = { s: "small", m: "medium", l: "large" } as const;
               {spot.leader ? (
                 <>
                   {" · "}
-                  <span class="text-ink-soft">{spot.leader.brand}</span>
+                  {spot.leader.url ? (
+                    <a
+                      href={tagged(spot.leader.url, "spot")}
+                      target="_blank"
+                      rel="noopener noreferrer sponsored"
+                      class="text-ink-soft underline decoration-line-strong underline-offset-2 transition-colors hover:text-ink"
+                    >
+                      {spot.leader.brand}
+                    </a>
+                  ) : (
+                    <span class="text-ink-soft">{spot.leader.brand}</span>
+                  )}
                   {` · ${spot.bids} ${spot.bids === 1 ? "bid" : "bids"}`}
                 </>
               ) : (

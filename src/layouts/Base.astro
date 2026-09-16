@@ -59,5 +59,16 @@ const ogImage = new URL("/og.png", Astro.site);
     </a>
     <slot />
     <Analytics />
+    <script>
+      document.addEventListener("submit", (event) => {
+        const form = event.target as HTMLFormElement;
+        if (!(form instanceof HTMLFormElement) || form.id === "bid-form") return;
+        const button = form.querySelector<HTMLButtonElement>("button[type=submit], button:not([type])");
+        if (!button) return;
+        button.setAttribute("aria-busy", "true");
+        button.dataset.idle = button.textContent ?? "";
+        button.textContent = "working";
+      });
+    </script>
   </body>
 </html>

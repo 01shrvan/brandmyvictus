@@ -134,6 +134,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
       field("hint").textContent = spot.leader ? `at least ${rupees(spot.min)}, steps of ₹${step} or more` : `starts at ${rupees(spot.min)}`;
       submit.textContent = claim ? "request it" : "place bid";
       submit.disabled = false;
+      submit.removeAttribute("aria-busy");
       setStatus("");
       dialog.showModal();
       (claim ? (form.elements.namedItem("brand") as HTMLInputElement) : amount).focus();
@@ -180,6 +181,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
       data.set("amount", String(value));
 
       submit.disabled = true;
+      submit.setAttribute("aria-busy", "true");
       setStatus(claim ? "sending request" : "placing bid");
 
       try {
@@ -210,6 +212,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
         setStatus("network dropped, try again", "error");
       }
       submit.disabled = false;
+      submit.removeAttribute("aria-busy");
     });
 
     if (new URLSearchParams(location.search).has("fresh")) history.replaceState(null, "", location.pathname + location.hash);

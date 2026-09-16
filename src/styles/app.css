@@ -131,6 +131,19 @@
     opacity: 0.45;
     pointer-events: none;
   }
+  .btn[aria-busy="true"] {
+    opacity: 0.75;
+    pointer-events: none;
+  }
+  .btn[aria-busy="true"]::before {
+    content: "";
+    width: 0.8em;
+    height: 0.8em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 999px;
+    animation: spin 620ms linear infinite;
+  }
 
   .field {
     width: 100%;
@@ -242,6 +255,12 @@
 .tab[aria-selected="true"] {
   background: var(--color-ink);
   color: var(--color-ground);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes settle {
