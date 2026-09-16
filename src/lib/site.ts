@@ -88,7 +88,7 @@ export const STEPS = [
   },
   {
     title: "bid on it",
-    note: `your bid counts instantly and anyone can outbid you by ₹${AUCTION.step} or more until it closes. new brands show as in review until i check them. no card needed`,
+    note: `your name and logo land on the spot straight away, pulled from your link. anyone can outbid you by ₹${AUCTION.step} or more until it closes. no card needed`,
   },
   {
     title: "your sticker rides along",
@@ -107,11 +107,11 @@ export const FAQ = [
   },
   {
     q: "what do i get",
-    a: "a die cut vinyl sticker on the spot you won, applied by me. plus your logo and link on this page for as long as the sticker stays on",
+    a: "a die cut vinyl sticker on the spot you won, applied by me. plus your logo and link on this page for as long as the sticker stays on. the logo comes from your own link, send me a png if you want a different one",
   },
   {
     q: "do i pay when i bid",
-    a: "no. bids are free to place. new brands show as in review until i check them, then your name and link go live. if you win, i contact you after the auction closes with a payment link. if you dont pay within 72 hours the spot goes to the next highest bid",
+    a: "no. bids are free to place and show up straight away with your logo. your link becomes clickable once i check it. if you win, i email you after the auction closes with how to pay. if you dont pay within 72 hours the spot goes to the next highest bid",
   },
   {
     q: "can i get outbid",

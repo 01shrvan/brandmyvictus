@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { clientIp, hashIp, sameOrigin } from "@/lib/admin";
 import { isClosed, stepFor } from "@/lib/auction";
 import { db } from "@/lib/db";
+import { fetchLogo } from "@/lib/logo";
 import { mails, sendAll } from "@/lib/mail";
 import { AUCTION, CORNER, spotById } from "@/lib/site";
 
@@ -114,8 +115,9 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   if (row?.result === "too_low") return json({ result: "too_low", min: row.next_min, max: row.max_amount }, 409);
   if (row?.result === "too_high") return json({ result: "too_high", min: row.next_min, max: row.max_amount }, 409);
   if (row?.result === "leading" && row.bid_id) {
+    await fetchLogo(client, row.bid_id, url);
     await sendAll([
-      mails.adminBid({ spot: spot.label, amount, brand, url, email }),
+      mails.adminBid({ id: row.bid_id, spot: spot.label, amount, brand, url, email }),
       mails.bidPlaced({ to: email, spot: spot.label, amount }),
       row.outbid_email ? mails.outbid({ to: row.outbid_email, spot: spot.label, amount, next: amount + AUCTION.step }) : null,
     ]);

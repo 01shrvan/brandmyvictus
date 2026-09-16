@@ -6,6 +6,7 @@ import { fetchLogo, removeLogo } from "@/lib/logo";
 import { mails, sendAll } from "@/lib/mail";
 import { ALL_SPOTS, CORNER } from "@/lib/site";
 import { UUID } from "@/lib/stickers";
+import { verifyAction } from "@/lib/tokens";
 
 export const prerender = false;
 
@@ -18,18 +19,24 @@ const back = (note: string) =>
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   const client = db();
-  if (!client || !isAdmin(cookies) || !sameOrigin(request)) return new Response("not found", { status: 404 });
+  if (!client || !sameOrigin(request)) return new Response("not found", { status: 404 });
 
   let id = "";
   let action = "";
+  let token = "";
   try {
     const form = await request.formData();
     id = String(form.get("id") ?? "");
     action = String(form.get("action") ?? "");
+    token = String(form.get("token") ?? "");
   } catch {
     return back("bad request");
   }
   if (!ACTIONS.has(action)) return back("bad request");
+
+  const signedIn = isAdmin(cookies);
+  const linkOk = Boolean(token) && UUID.test(id) && verifyAction(action, id, token);
+  if (!signedIn && !linkOk) return new Response("not found", { status: 404 });
 
   if (action === "notify_winners") {
     if (!isClosed()) return back("the auction is still open");

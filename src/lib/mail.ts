@@ -1,6 +1,7 @@
 import { BREVO_API_KEY, UPI_ID } from "astro:env/server";
 import { formatInr } from "@/lib/money";
 import { AUCTION, SITE } from "@/lib/site";
+import { actionUrl } from "@/lib/tokens";
 
 export const MAIL_FROM = "victus@shrvan.xyz";
 
@@ -61,16 +62,28 @@ const payLine = (amount: number, note: string) =>
 const safety = `i only ever email from ${MAIL_FROM} and only take payment to the upi id written in these emails. if anyone else asks you to pay for a spot, its a scam.`;
 
 export const mails = {
-  adminBid: (p: { spot: string; amount: number; brand: string; url: string; email: string }): Mail => ({
+  adminBid: (p: { id: string; spot: string; amount: number; brand: string; url: string; email: string }): Mail => ({
     to: SITE.email,
     subject: `new bid ${formatInr(p.amount)} on ${p.spot}`,
-    lines: [`brand: ${p.brand}`, `link: ${p.url}`, `bidder: ${p.email}`, `review it at ${SITE.url}/admin`],
+    lines: [
+      `${p.brand} bid ${formatInr(p.amount)} on ${p.spot}. the name and logo are already showing, their link is not clickable yet.`,
+      `link they gave: ${p.url}`,
+      `bidder: ${p.email}`,
+      `looks fine, make their link clickable: ${actionUrl(SITE.url, "approve", p.id)}`,
+      `not fine, take it down: ${actionUrl(SITE.url, "reject", p.id)}`,
+      `everything else: ${SITE.url}/admin`,
+    ],
   }),
 
   adminClaim: (p: { amount: number; brand: string; url: string; email: string }): Mail => ({
     to: SITE.email,
     subject: `corner request ${formatInr(p.amount)}`,
-    lines: [`brand: ${p.brand}`, `link: ${p.url}`, `requester: ${p.email}`, `confirm it once paid at ${SITE.url}/admin`],
+    lines: [
+      `${p.brand} wants the corner for ${formatInr(p.amount)}. it stays hidden until you confirm they paid.`,
+      `link they gave: ${p.url}`,
+      `requester: ${p.email}`,
+      `confirm it once the money lands: ${SITE.url}/admin`,
+    ],
   }),
 
   bidPlaced: (p: { to: string; spot: string; amount: number }): Mail => ({
@@ -78,7 +91,7 @@ export const mails = {
     subject: `your bid on ${p.spot} is in`,
     lines: [
       `your bid of ${formatInr(p.amount)} on the ${p.spot} spot is in.`,
-      `it shows as "in review" until i check the brand, usually within a day. you'll get an email when it's live and another one if someone outbids you. bidding closes ${closeLabel()}.`,
+      `your name and logo are on the spot already. your link becomes clickable once i check it, usually within a day. you'll get an email if someone outbids you. bidding closes ${closeLabel()}.`,
       `no payment now. you only pay if you win.`,
       `didn't place this bid? ignore this email, nothing happens.`,
       `${SITE.url}`,
@@ -97,9 +110,9 @@ export const mails = {
 
   approved: (p: { to: string; spot: string }): Mail => ({
     to: p.to,
-    subject: `you're live on ${p.spot}`,
+    subject: `your link is live on ${p.spot}`,
     lines: [
-      `your bid on the ${p.spot} spot is approved. your logo and link are now showing on ${SITE.url}`,
+      `checked and cleared. your logo and your link are both live on the ${p.spot} spot at ${SITE.url}`,
       `if the logo came out wrong, reply with a png and i'll swap it.`,
     ],
   }),

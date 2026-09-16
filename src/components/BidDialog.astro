@@ -187,7 +187,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
         const body = await res.json().catch(() => ({}));
 
         if (res.ok && body.result === "leading") {
-          setStatus(`you lead at ${rupees(value)}. check your inbox, your logo shows once i approve it`, "ok");
+          setStatus(`you lead at ${rupees(value)}. check your inbox, your logo is on the spot now`, "ok");
           setTimeout(() => location.replace(`/?fresh=${Date.now()}`), 1800);
           return;
         }

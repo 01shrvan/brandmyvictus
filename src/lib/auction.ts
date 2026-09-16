@@ -31,8 +31,6 @@ export type Board = {
   closed: boolean;
 };
 
-export const IN_REVIEW = "in review";
-
 export const stepFor = (spot: Spot) => (spot.id === CORNER.id ? AUCTION.cornerStep : AUCTION.step);
 
 export const minFor = (spot: Spot, leader: Bid | null) => (leader ? leader.amount + stepFor(spot) : spot.start);
@@ -57,9 +55,9 @@ export const loadBids = async (): Promise<{ connected: boolean; bids: Bid[] }> =
       id: row.id,
       spotId: row.spot_id,
       amount: row.amount,
-      brand: row.approved ? row.brand : IN_REVIEW,
+      brand: row.brand,
       url: row.approved ? row.url : null,
-      sticker: row.approved && row.sticker_path ? `/api/sticker/${row.id}` : null,
+      sticker: row.sticker_path ? `/api/sticker/${row.id}` : null,
       approved: row.approved,
       status: row.status,
       createdAt: row.created_at,

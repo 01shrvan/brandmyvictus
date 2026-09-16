@@ -11,11 +11,11 @@ export const GET: APIRoute = async ({ params }) => {
 
   const { data, error } = await client
     .from("bids")
-    .select("sticker_path, approved, status")
+    .select("sticker_path, status")
     .eq("id", id)
     .maybeSingle();
 
-  if (error || !data?.sticker_path || !data.approved || !["leading", "outbid"].includes(data.status)) {
+  if (error || !data?.sticker_path || !["leading", "outbid"].includes(data.status)) {
     return new Response("not found", { status: 404, headers: { "cache-control": "public, max-age=60" } });
   }
 

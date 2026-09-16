@@ -1,0 +1,75 @@
+---
+import Base from "@/layouts/Base.astro";
+import { db } from "@/lib/db";
+import { formatInr } from "@/lib/money";
+import { ALL_SPOTS } from "@/lib/site";
+import { UUID } from "@/lib/stickers";
+import { verifyAction } from "@/lib/tokens";
+
+export const prerender = false;
+
+Astro.response.headers.set("cache-control", "no-store");
+Astro.response.headers.set("x-robots-tag", "noindex, nofollow");
+
+const { action = "", id = "", token = "" } = Astro.params;
+const client = db();
+const valid = UUID.test(id) && verifyAction(action, id, token);
+
+let bid: { brand: string; url: string; amount: number; spot_id: number; status: string; approved: boolean; sticker_path: string | null } | null = null;
+if (valid && client) {
+  const { data } = await client
+    .from("bids")
+    .select("brand, url, amount, spot_id, status, approved, sticker_path")
+    .eq("id", id)
+    .maybeSingle();
+  bid = data;
+}
+
+const spot = bid ? (ALL_SPOTS.find((s) => s.id === bid.spot_id)?.label ?? `spot ${bid.spot_id}`) : "";
+const heading = action === "approve" ? "make this link clickable" : "take this bid down";
+---
+
+<Base title={heading} noindex>
+  <main class="mx-auto max-w-lg px-gutter py-16">
+    {
+      !valid || !bid ? (
+        <p class="text-step--1 text-ink-soft">this link doesnt work any more. open <a class="link" href="/admin">/admin</a> instead.</p>
+      ) : (
+        <>
+          <h1 class="text-step-1 font-semibold">{heading}</h1>
+
+          <div class="mt-6 flex items-center gap-4 rounded-xl border p-4">
+            <div class="grid size-14 shrink-0 place-items-center overflow-hidden rounded-lg border bg-vinyl">
+              {bid.sticker_path ? (
+                <img src={`/api/sticker/${id}`} alt="" width="56" height="56" class="size-14 object-contain" />
+              ) : (
+                <span class="data text-ink-dim">none</span>
+              )}
+            </div>
+            <div class="min-w-0">
+              <p class="font-medium">{bid.brand}</p>
+              <p class="data mt-0.5 text-ink-dim">{formatInr(bid.amount)} · {spot} · {bid.status}{bid.approved ? " · link live" : " · link not live yet"}</p>
+              <p class="data mt-0.5 break-all text-ink-dim">{bid.url}</p>
+            </div>
+          </div>
+
+          <p class="mt-4 text-step--1 text-ink-soft">
+            {action === "approve"
+              ? "open their link in a new tab first. once you confirm, it becomes clickable for everyone on the site."
+              : "this hides the brand, drops the logo and puts the previous bid back on the spot."}
+          </p>
+
+          <form method="post" action="/api/admin/action" class="mt-6 flex flex-wrap items-center gap-3">
+            <input type="hidden" name="id" value={id} />
+            <input type="hidden" name="action" value={action} />
+            <input type="hidden" name="token" value={token} />
+            <button class:list={["btn", action === "approve" && "btn-signal"]} type="submit">
+              {action === "approve" ? "yes, make it clickable" : "yes, take it down"}
+            </button>
+            <a class="btn" href={bid.url} target="_blank" rel="noopener noreferrer nofollow">open their link</a>
+          </form>
+        </>
+      )
+    }
+  </main>
+</Base>
