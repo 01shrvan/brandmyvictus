@@ -182,7 +182,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
 
       submit.disabled = true;
       submit.setAttribute("aria-busy", "true");
-      setStatus(claim ? "sending request" : "placing bid");
+      setStatus("");
 
       try {
         const res = await fetch("/api/bid", { method: "POST", body: data });
