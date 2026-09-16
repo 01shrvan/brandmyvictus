@@ -11,7 +11,7 @@
   --color-panel: oklch(0.948 0.005 260);
   --color-ink: oklch(0.205 0.012 262);
   --color-ink-soft: oklch(0.43 0.012 262);
-  --color-ink-dim: oklch(0.6 0.012 262);
+  --color-ink-dim: oklch(0.52 0.014 262);
   --color-line: oklch(0.205 0.012 262 / 0.1);
   --color-line-strong: oklch(0.205 0.012 262 / 0.24);
   --color-lid: oklch(0.215 0.01 262);

@@ -52,7 +52,7 @@ const labelFor = (id: number) => SPOTS.find((s) => s.id === id)?.label ?? "";
           your logo<br />on my victus
         </h1>
         <p class="mt-5 max-w-[34ch] text-step-1 leading-snug text-ink-soft">
-          the laptop i build everything on goes to cafes, college, meetups and every screen recording i post. put your brand on it
+          the laptop i build everything on goes to cafes, college and meetups, and it turns up in every desk photo i post. put your brand on it
         </p>
         <div class="mt-7 flex flex-wrap items-center gap-2.5">
           <a href="#spots" class="btn btn-signal">pick a spot, from <Money inr={cheapest} /></a>
@@ -166,7 +166,12 @@ const labelFor = (id: number) => SPOTS.find((s) => s.id === id)?.label ?? "";
         <p class="text-step--1 text-ink-soft">
           by <a href={SITE.home} class="link">{SITE.owner}</a>, {SITE.location}. questions to <a href={SITE.x} class="link">@01shrvan</a>
         </p>
-        <p class="data mt-3 text-ink-dim">hp and victus are trademarks of hp inc. this auction isnt affiliated with hp</p>
+        <p class="data mt-3 text-ink-dim">
+          your email is only used to talk to you about this auction and gets deleted 30 days after it closes. i keep a one way hash of your ip to stop spam, never the ip itself
+        </p>
+        <p class="data mt-1.5 text-ink-dim">
+          idea borrowed from <a href="https://brandmymac.com" class="link" rel="noopener noreferrer" target="_blank">brandmymac.com</a>. hp and victus are trademarks of hp inc. this auction isnt affiliated with hp
+        </p>
         <p class="data mt-1.5 text-ink-dim">
           laptop photos by <a href={PHOTOS.lid.source} class="link" rel="noopener noreferrer" target="_blank">{PHOTOS.credit}</a>, <a href={PHOTOS.licenseUrl} class="link" rel="noopener noreferrer" target="_blank">{PHOTOS.license}</a>, straightened and darkened
         </p>

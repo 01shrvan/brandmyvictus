@@ -116,9 +116,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   if (row?.result === "too_high") return json({ result: "too_high", min: row.next_min, max: row.max_amount }, 409);
   if (row?.result === "leading" && row.bid_id) {
     await fetchLogo(client, row.bid_id, url);
+    const { data: quiet } = await client.rpc("mail_throttled", { p_email: email });
     await sendAll([
       mails.adminBid({ id: row.bid_id, spot: spot.label, amount, brand, url, email }),
-      mails.bidPlaced({ to: email, spot: spot.label, amount }),
+      quiet === true ? null : mails.bidPlaced({ to: email, spot: spot.label, amount }),
       row.outbid_email ? mails.outbid({ to: row.outbid_email, spot: spot.label, amount, next: amount + AUCTION.step }) : null,
     ]);
     return json({ result: "leading", next: row.next_min });

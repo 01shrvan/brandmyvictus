@@ -19,5 +19,5 @@ export const GET: APIRoute = async ({ params }) => {
     return new Response("not found", { status: 404, headers: { "cache-control": "public, max-age=60" } });
   }
 
-  return stickerResponse(client, data.sticker_path, "public, max-age=3600, s-maxage=86400");
+  return stickerResponse(client, data.sticker_path, "public, max-age=300, s-maxage=300");
 };

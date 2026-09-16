@@ -49,20 +49,20 @@ const ago = (iso: string) => {
   return hours < 48 ? `${hours}h` : `${Math.round(hours / 24)}d`;
 };
 
-const review = rows.filter((r) => (r.status === "leading" || r.status === "outbid") && !r.approved);
+const review = rows.filter((r) => r.status === "leading" && !r.approved);
 const corner = rows.filter((r) => r.status === "pending");
-const live = rows.filter((r) => (r.status === "leading" || r.status === "outbid") && r.approved);
-const rejected = rows.filter((r) => r.status === "rejected").slice(0, 20);
+const live = rows.filter((r) => r.status === "leading" && r.approved);
+const history = rows.filter((r) => r.status === "outbid" || r.status === "rejected").slice(0, 20);
 const closed = isClosed();
 const winners = ALL_SPOTS.filter((s) => s.id !== 0)
   .map((s) => rows.filter((r) => r.spot_id === s.id && r.approved && r.status !== "rejected").sort((a, b) => b.amount - a.amount)[0])
   .filter((r): r is Row => Boolean(r));
 
 const groups = [
-  { title: "needs review", note: "counts as a bid already, brand and link stay hidden until you approve", rows: review, actions: ["approve", "reject"] },
+  { title: "needs a look", note: "leading right now. the name and logo are already up, the link is not clickable until you ok it", rows: review, actions: ["approve", "reject"] },
   { title: "corner requests", note: "confirm only after they have paid you", rows: corner, actions: ["confirm", "delete"] },
-  { title: "live", note: "approved and showing on the site", rows: live, actions: ["logo", "unlogo", "reject"] },
-  { title: "rejected", note: "last 20", rows: rejected, actions: ["delete"] },
+  { title: "cleared", note: "name, logo and link all live", rows: live, actions: ["logo", "unlogo", "reject"] },
+  { title: "history", note: "outbid and rejected, last 20. nothing to do here unless you want them gone", rows: history, actions: ["delete"] },
 ];
 
 const actionLabel: Record<string, string> = {

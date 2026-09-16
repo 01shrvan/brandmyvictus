@@ -8,7 +8,7 @@ export const SITE = {
   email: "benkeshrvan@gmail.com",
   location: "mumbai, india",
   description:
-    "an auction for the sticker spots on my hp victus. your logo rides along to every cafe, meetup and screen recording.",
+    "an auction for the sticker spots on my hp victus. your logo rides along to every cafe, meetup and desk photo.",
 } as const;
 
 export const AUCTION = {
@@ -77,8 +77,8 @@ export const spotById = (id: number) => ALL_SPOTS.find((s) => s.id === id);
 
 export const MACHINE = [
   { label: "laptop", value: "hp victus 15, black" },
-  { label: "lid", value: "35.8 × 25.5 cm, one small logo, the rest is yours" },
-  { label: "seen at", value: "cafes, meetups, college, video calls, screen recordings" },
+  { label: "lid", value: "35.8 × 25.5 cm, a V in the middle, the rest is yours" },
+  { label: "seen at", value: "cafes, meetups, college, desk photos, anywhere i open it" },
 ] as const;
 
 export const STEPS = [
@@ -103,7 +103,7 @@ export const FAQ = [
   },
   {
     q: "why a victus and not a macbook",
-    a: "a macbook lid already has the most famous logo in the world on it, so your sticker is fighting the apple. my lid has one small V that nobody looks twice at. yours is the thing people actually read",
+    a: "a macbook lid is already carrying the most famous logo in the world, so your sticker is fighting the apple for attention. mine carries a V that means nothing to anybody. next to that, yours is the only thing worth reading",
   },
   {
     q: "what do i get",
