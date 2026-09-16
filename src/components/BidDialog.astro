@@ -105,6 +105,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
     const amountRow = form.querySelector<HTMLElement>("[data-amount-row]")!;
     const claimRow = form.querySelector<HTMLElement>("[data-claim-row]")!;
     let current: SpotLite | null = null;
+    let finished = false;
 
     const setStatus = (text: string, tone: "plain" | "error" | "ok" = "plain") => {
       const el = field("status");
@@ -135,6 +136,7 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
       submit.textContent = claim ? "request it" : "place bid";
       submit.disabled = false;
       submit.removeAttribute("aria-busy");
+      finished = false;
       setStatus("");
       dialog.showModal();
       (claim ? (form.elements.namedItem("brand") as HTMLInputElement) : amount).focus();
@@ -160,6 +162,10 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
+      if (finished) {
+        dialog.close();
+        return;
+      }
       if (!current) return;
       const data = new FormData(form);
       const claim = current.zone === "web";
@@ -194,7 +200,11 @@ const payload = spots.map(({ id, label, zone, size, w, h, min, leader }) => ({
           return;
         }
         if (res.ok && body.result === "pending") {
-          setStatus(`request received. check your inbox for how to pay`, "ok");
+          setStatus("request received. check your inbox for how to pay", "ok");
+          finished = true;
+          submit.textContent = "close";
+          submit.disabled = false;
+          submit.removeAttribute("aria-busy");
           return;
         }
         if (body.result === "too_low" && typeof body.min === "number") {
