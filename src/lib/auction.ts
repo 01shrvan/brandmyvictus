@@ -89,8 +89,8 @@ export const buildBoard = (connected: boolean, bids: Bid[]): Board => {
       .slice(0, 5),
     recent: auctionBids.slice(0, 8),
     raised:
-      spots.reduce((sum, s) => sum + (s.leader?.approved ? s.leader.amount : 0), 0) +
-      bids.filter((b) => b.spotId === CORNER.id && b.approved).reduce((sum, b) => sum + b.amount, 0),
+      spots.reduce((sum, s) => sum + (s.leader?.amount ?? 0), 0) +
+      bids.filter((b) => b.spotId === CORNER.id && b.status === "leading").reduce((sum, b) => sum + b.amount, 0),
     totalBids: auctionBids.length,
     closed,
   };
